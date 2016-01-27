@@ -1,0 +1,365 @@
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//
+// Chinook Project Template
+//
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//
+// File    : Setup.c
+// Author  : Frederic Chasse
+// Date    : 2015-01-03
+//
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//
+// Purpose : This is the C file for the setup of the system. It contains the
+//           initialization functions.
+//
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//
+// Notes   : For ChinookLib to be useable, it must be cloned on your hard
+//           drive so the path
+//               "..\..\..\ChinookLib\ChinookLib.X\headers\ChinookLib.h"
+//           references an existing file.
+//
+//           Function names can and should be renamed by the user to improve the
+//           readability of the code. Also, the LED used for testing errors in
+//           TimerInit is a LED on the MAX32 development board. Developpers
+//           should test for errors by the means (hardware of software) they
+//           judge are the best.
+//
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#include "..\headers\Setup.h"
+#include "..\headers\Interrupts.h"
+#include "..\headers\SkadiFunctions.h"
+
+
+//==============================================================================
+//	Variable Declaration
+//==============================================================================
+
+/***********************************
+ * Table of functions used in Skadi
+ **********************************/
+sSkadiCommand_t skadiCommandTable[] =
+{
+   {"LedDebug"    , LedDebug    , 1, "Usage : flash Led DEBUG"}   // 1 argument
+  ,{"LedCan"      , LedCan      , 1, "Usage : flash Led CAN"}     // 1 argument
+  ,{"ReInitSystem", ReInitSystem, 0, "Redo StateInit()"}          // 0 argument
+};
+
+
+//==============================================================================
+//	INIT FUNCTIONS
+//==============================================================================
+
+
+//===========================
+//	INIT TIMERS
+//===========================
+void InitTimer(void)
+{
+
+  INT32 timerCounterValue = 0;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//	Open timers
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  timerCounterValue = Timer.Open(TIMER_1, 500, SCALE_MS);   // Open Timer 1 with a period of 500 ms
+  if (timerCounterValue < 0)
+  {
+    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+  }
+  timerCounterValue = Timer.Open(TIMER_2, 500, SCALE_US);   // Open Timer 2 with a period of 500 us
+  if (timerCounterValue < 0)
+  {
+    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+  }
+  timerCounterValue = Timer.Open(TIMER_3, 500, SCALE_MS);   // Open Timer 3 with a period of 500 ms
+  if (timerCounterValue < 0)
+  {
+    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+  }
+  timerCounterValue = Timer.Open(TIMER_4, 500, SCALE_MS);   // Open Timer 4 with a period of 500 ms
+  if (timerCounterValue < 0)
+  {
+    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+  }
+  timerCounterValue = Timer.Open(TIMER_5, 500, SCALE_US);   // Open Timer 5 with a period of 500 us
+  if (timerCounterValue < 0)
+  {
+    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+  }
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//	Configure timer interrupts
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Timer.ConfigInterrupt(TIMER_1, TIMER1_INTERRUPT_PRIORITY, TIMER1_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_1 to the values specified in Interrupt.h
+  Timer.ConfigInterrupt(TIMER_2, TIMER2_INTERRUPT_PRIORITY, TIMER2_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_2 to the values specified in Interrupt.h
+  Timer.ConfigInterrupt(TIMER_3, TIMER3_INTERRUPT_PRIORITY, TIMER3_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_3 to the values specified in Interrupt.h
+  Timer.ConfigInterrupt(TIMER_4, TIMER4_INTERRUPT_PRIORITY, TIMER4_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_4 to the values specified in Interrupt.h
+  Timer.ConfigInterrupt(TIMER_5, TIMER5_INTERRUPT_PRIORITY, TIMER5_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_5 to the values specified in Interrupt.h
+
+}
+
+
+//===========================
+//	INIT SPI
+//===========================
+void InitSpi(void)
+{
+  INT8 err = 0;
+  SpiOpenFlags_t oMasterFlags =   SPI_MASTER_MODE
+                                | SPI_MASTER_SS
+                                | SPI_16_BITS_CHAR
+                                | SPI_ENHANCED_BUFFER_MODE
+                                | SPI_TX_EVENT_BUFFER_EMPTY
+                                | SPI_RX_EVENT_BUFFER_NOT_EMPTY
+                ;
+
+  err = Spi.Open(SPI3, oMasterFlags, 5e6);   // Open the SPI3 as a master at a bitrate of 5 MHz
+  if (err < 0)                // Check for errors
+  {
+    Port.F.ClearBits(BIT_0);    // Turn on the LED_DEBUG1
+  }
+
+  // SPI interrupts not functionnal as of yet
+//  Spi.ConfigInterrupt(SPI2, SPI2_INTERRUPT_PRIORITY, SPI2_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI2
+//  Spi.ConfigInterrupt(SPI3, SPI3_INTERRUPT_PRIORITY, SPI4_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI3
+//  Spi.ConfigInterrupt(SPI4, SPI3_INTERRUPT_PRIORITY, SPI4_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI4
+}
+
+
+//===========================
+//	INIT PORTS
+//===========================
+void InitPorts(void)
+{
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Set unused pins as input to protect the pins of the microcontroller
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Port.A.CloseBits  ( BIT_0  | BIT_1  | BIT_2  | BIT_3      // RA8, RA11-13 non existent
+                    | BIT_4  | BIT_5  | BIT_6  | BIT_7
+                    | BIT_9  | BIT_10 | BIT_14 | BIT_15 );
+
+  Port.B.CloseBits  ( BIT_0  | BIT_1  | BIT_2  | BIT_3
+                    | BIT_4  | BIT_5  | BIT_6  | BIT_7
+                    | BIT_8  | BIT_9  | BIT_10 | BIT_11
+                    | BIT_12 | BIT_13 | BIT_14 | BIT_15 );
+
+  Port.C.CloseBits  ( BIT_1  | BIT_2  | BIT_3  | BIT_4      // RC0, RC5-11 non existent
+                    | BIT_12 | BIT_13 | BIT_14 | BIT_15 );
+
+  Port.D.CloseBits  ( BIT_0  | BIT_1  | BIT_2  | BIT_3
+                    | BIT_4  | BIT_5  | BIT_6  | BIT_7
+                    | BIT_8  | BIT_9  | BIT_10 | BIT_11
+                    | BIT_12 | BIT_13 | BIT_14 | BIT_15 );
+
+  Port.E.CloseBits  ( BIT_0  | BIT_1  | BIT_2  | BIT_3      // RE10-15 non existent
+                    | BIT_4  | BIT_5  | BIT_6  | BIT_7
+                    | BIT_8  | BIT_9  );
+
+  Port.F.CloseBits  ( BIT_0  | BIT_1  | BIT_2  | BIT_3      // RF6-7, RF9-11, RF14-15 non existent
+                    | BIT_4  | BIT_5  | BIT_8  | BIT_12
+                    | BIT_13 );
+
+  Port.G.CloseBits  ( BIT_0  | BIT_1  | BIT_2  | BIT_3      // RG4-5, RG10-11 non existent
+                    | BIT_6  | BIT_7  | BIT_8  | BIT_9
+                    | BIT_12 | BIT_13 | BIT_14 | BIT_15 );
+
+  Port.B.SetPinsAnalogIn(0xFFFF);
+  
+  Port.C.SetPinsDigitalIn(BIT_12 | BIT_12 | BIT_14);
+  Port.C.SetPinsDigitalOut(BIT_15);
+  
+  Port.D.CloseBits(BIT_0);
+  Port.D.SetPinsDigitalIn(BIT_2);
+  Port.D.SetPinsDigitalOut(BIT_1 | BIT_3 | BIT_4 | BIT_5 | BIT_6 | BIT_7 | BIT_8 | BIT_9 | BIT_10 | BIT_11 );
+  
+  Port.E.SetPinsDigitalOut(BIT_0 | BIT_1 | BIT_2 | BIT_3 | BIT_4);
+  Port.E.SetPinsDigitalIn(BIT_5 | BIT_6 | BIT_7);
+  
+  Port.F.SetPinsDigitalOut(BIT_0 | BIT_1 | BIT_4 | BIT_5);
+  Port.F.CloseBits(BIT_3);
+  
+  Port.G.SetPinsDigitalOut(BIT_6 | BIT_8);
+  Port.G.SetPinsDigitalIn(BIT_2 | BIT_3 | BIT_7 | BIT_9); // RG2-3 only input pins
+
+}
+
+
+//===========================
+//	INIT UART
+//===========================
+void InitUart (void)
+{
+
+  UartConfig_t       oConfig      = UART_ENABLE_PINS_TX_RX_ONLY;
+  UartFifoMode_t     oFifoMode    = UART_INTERRUPT_ON_TX_BUFFER_EMPTY | UART_INTERRUPT_ON_RX_NOT_EMPTY;
+  UartLineCtrlMode_t oLineControl = UART_DATA_SIZE_8_BITS | UART_PARITY_NONE | UART_STOP_BITS_1;
+
+  Uart.Open(UART3, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 3 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
+  Uart.Open(UART6, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 6 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
+
+  Uart.EnableRx(UART3);
+  Uart.EnableRx(UART6);
+
+  Uart.EnableTx(UART3);
+  Uart.EnableTx(UART6);
+
+  Uart.ConfigInterrupt(UART3, UART3_INTERRUPT_PRIORITY, UART3_INTERRUPT_SUBPRIORITY);
+  Uart.ConfigInterrupt(UART6, UART6_INTERRUPT_PRIORITY, UART6_INTERRUPT_SUBPRIORITY);
+  
+}
+
+
+//===========================
+//	INIT SKADI
+//===========================
+void InitSkadi(void)
+{
+//  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART1, FALSE);   // This system does not use UART interrupts
+  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART1, TRUE);   // This system uses UART interrupts
+}
+
+
+//===========================
+//	INIT I2C
+//===========================
+void InitI2c(void)
+{
+  INT8 err;
+
+  I2c.Open(I2C5, I2C_FREQ_400K);
+  err = I2c.ConfigInterrupt(I2C5, I2C5_INTERRUPT_PRIORITY, I2C5_INTERRUPT_SUBPRIORITY);
+  if (err < 0)
+  {
+//    LED_ERROR_ON;
+  }
+}
+
+
+//===========================
+//	INIT WATCHDOG TIMER
+//===========================
+void InitWdt(void)
+{
+  Wdt.Enable();
+}
+
+
+//===========================
+//	INIT ADC
+//===========================
+void InitAdc(void)
+{
+  // Mode of operation.
+  //================================================
+  UINT32 samplingClk = ADC_CLK_TMR;     // Timer3 used for sampling
+  //================================================
+
+  // Hardware config.
+  //================================================
+  UINT32 configHardware = ADC_VREF_EXT_AVSS      // Vref+ external and Vref- is AVss
+                        | ADC_SAMPLES_PER_INT_15;  // 15 samples/interrupt (we check 16 channels)
+  //================================================
+
+  // Port config.
+  //================================================
+  UINT32 configPort =   ENABLE_AN1_ANA
+                      | ENABLE_AN2_ANA
+                      | ENABLE_AN3_ANA
+                      | ENABLE_AN4_ANA
+                      | ENABLE_AN5_ANA
+                      | ENABLE_AN6_ANA
+                      | ENABLE_AN7_ANA
+                      | ENABLE_AN8_ANA
+                      | ENABLE_AN9_ANA
+                      | ENABLE_AN10_ANA
+                      | ENABLE_AN11_ANA
+                      | ENABLE_AN12_ANA
+                      | ENABLE_AN13_ANA
+                      | ENABLE_AN14_ANA
+                      | ENABLE_AN15_ANA
+                      ; // Enable AN1-AN15 in analog mode
+  
+  UINT32 configScan = SKIP_SCAN_AN0; // Skip AN0 as it's vref+
+  //================================================
+
+  // Open ADC with parameters above
+  Adc.Open(samplingClk, configHardware, configPort, configScan);
+
+  Adc.ConfigInterrupt(ADC_INTERRUPT_PRIORITY, ADC_INTERRUPT_SUBPRIORITY);
+}
+
+//===========================
+//	START INTERRUPTS
+//===========================
+void StartInterrupts(void)
+{
+  INT8 err;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Enable timer interrupts
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Timer.EnableInterrupt(TIMER_1);
+  Timer.EnableInterrupt(TIMER_2);
+  Timer.EnableInterrupt(TIMER_3);
+  Timer.EnableInterrupt(TIMER_4);
+  Timer.EnableInterrupt(TIMER_5);
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Enable RX UART interrupts and disable TX interrupts. 
+// TX interrupts are disabled at init and only
+// enabled when writing to the user's TX FIFO buffer
+// with Uart.PutTxFifoBuffer(...)
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  Uart.EnableRxInterrupts (UART3);  // Enable RX Interrupts for UART3
+  Uart.DisableTxInterrupts(UART3);  // Disable TX Interrupts for UART3
+
+  Uart.EnableRxInterrupts (UART6);  // Enable RX Interrupts for UART6
+  Uart.DisableTxInterrupts(UART6);  // Disable TX Interrupts for UART6
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Enable SPI interrupts             // Not functionnal yet
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//  Spi.EnableRxInterrupts(SPI3);   // Enable RX Interrupts for SPI3
+//  Spi.EnableTxInterrupts(SPI3);   // Enable TX Interrupts for SPI3
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Enable ADC interrupts
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Adc.EnableInterrupts();   // Works only when not in manual mode
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Enable I2C interrupts
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  err = I2c.EnableInterrupt (I2C5, I2C_MASTER_INTERRUPT);
+  if (err < 0)
+  {
+//    LED_ERROR_ON;
+  }
+  err = I2c.DisableInterrupt(I2C5, I2C_SLAVE_INTERRUPT);
+  if (err < 0)
+  {
+//    LED_ERROR_ON;
+  }
+  err = I2c.DisableInterrupt(I2C5, I2C_BUS_COLLISION_INTERRUPT);
+  if (err < 0)
+  {
+//    LED_ERROR_ON;
+  }
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Enable multi-vector interrupts
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  INTConfigureSystem(INT_SYSTEM_CONFIG_MULT_VECTOR);
+  INTEnableInterrupts();
+
+}
