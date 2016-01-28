@@ -116,16 +116,14 @@ void InitSpi(void)
                                 | SPI_RX_EVENT_BUFFER_NOT_EMPTY
                 ;
 
-  err = Spi.Open(SPI3, oMasterFlags, 5e6);   // Open the SPI3 as a master at a bitrate of 5 MHz
+  err = Spi.Open(SPI3, oMasterFlags, 10e6);   // Open the SPI3 as a master at a bitrate of 10 MHz
   if (err < 0)                // Check for errors
   {
-    Port.F.ClearBits(BIT_0);    // Turn on the LED_DEBUG1
+    LED1_ON;    // Turn on the LED_DEBUG1
   }
 
   // SPI interrupts not functionnal as of yet
-//  Spi.ConfigInterrupt(SPI2, SPI2_INTERRUPT_PRIORITY, SPI2_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI2
 //  Spi.ConfigInterrupt(SPI3, SPI3_INTERRUPT_PRIORITY, SPI4_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI3
-//  Spi.ConfigInterrupt(SPI4, SPI3_INTERRUPT_PRIORITY, SPI4_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI4
 }
 
 
@@ -265,14 +263,7 @@ void InitAdc(void)
 
   // Port config.
   //================================================
-  UINT32 configPort =   ENABLE_AN1_ANA
-                      | ENABLE_AN2_ANA
-                      | ENABLE_AN3_ANA
-                      | ENABLE_AN4_ANA
-                      | ENABLE_AN5_ANA
-                      | ENABLE_AN6_ANA
-                      | ENABLE_AN7_ANA
-                      | ENABLE_AN8_ANA
+  UINT32 configPort =   ENABLE_AN8_ANA
                       | ENABLE_AN9_ANA
                       | ENABLE_AN10_ANA
                       | ENABLE_AN11_ANA
@@ -282,7 +273,15 @@ void InitAdc(void)
                       | ENABLE_AN15_ANA
                       ; // Enable AN1-AN15 in analog mode
   
-  UINT32 configScan = SKIP_SCAN_AN0; // Skip AN0 as it's vref+
+  UINT32 configScan =   SKIP_SCAN_AN0  // Skip AN0 as it's vref+
+                      | SKIP_SCAN_AN1
+                      | SKIP_SCAN_AN2
+                      | SKIP_SCAN_AN3
+                      | SKIP_SCAN_AN4
+                      | SKIP_SCAN_AN5
+                      | SKIP_SCAN_AN6
+                      | SKIP_SCAN_AN7
+                      ;
   //================================================
 
   // Open ADC with parameters above

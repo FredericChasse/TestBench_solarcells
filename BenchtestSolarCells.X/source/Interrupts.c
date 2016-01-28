@@ -27,6 +27,7 @@
 
 #include "..\headers\Interrupts.h"
 
+volatile BOOL oAdcReady = 0;
 
 /*******************************************************************************
  ***********************                               *************************
@@ -69,9 +70,6 @@ void __ISR(_TIMER_2_VECTOR, T2_INTERRUPT_PRIORITY) Timer2InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_3_VECTOR, T3_INTERRUPT_PRIORITY) Timer3InterruptHandler(void)
 {
-  /*
-   * DEVELOPPER CODE HERE
-   */
 
   // Increment the number of overflows from this timer. Used primarily by Input Capture
   Timer.Var.nOverflows[2]++;
@@ -293,6 +291,7 @@ void __ISR(_UART_6_VECTOR, U6_INTERRUPT_PRIORITY) Uart6InterruptHandler(void)
 void __ISR(_ADC_VECTOR, ADC_INTERRUPT_PRIO) AdcInterruptHandler(void)
 {
   Adc.Read();               // Read the enabled channels and puts them in Adc.Var.adcReadValues[]
+  oAdcReady = 1;
   INTClearFlag(INT_AD1);    // Clear the ADC conversion done interrupt Flag
 }
 //=============================================

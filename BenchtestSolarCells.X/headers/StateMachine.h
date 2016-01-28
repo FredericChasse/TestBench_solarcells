@@ -25,15 +25,18 @@
 
 #include "Setup.h"
 #include "StateFunctions.h"
+#include "Potentiometer.h"
+#include "LedDriver.h"
 
 
 //==============================================================================
 // State Machine public function prototypes
 //==============================================================================
 void StateInit      (void);   // Initialization state of the system
-void StateAcq       (void);   // First state. User can rename it as needed
-void State2         (void);   // Second state. User can rename it as needed
-void StateError     (void);   // Error state. User should assess and corret errors in this state
+void StateAcq       (void);   // Acquisition state
+void StateSendData  (void);   // Send data on UART
+void StateCompute   (void);   // Compute algorithm
+void StateError     (void);   // Error state. User should assess and correct errors in this state
 void StateScheduler (void);   // State Scheduler. Decides which state is next
                               // depending on current state and flags. Used as a function
 
@@ -53,19 +56,28 @@ void StateScheduler (void);   // State Scheduler. Decides which state is next
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #define INIT_2_ACQ     breakFlag                // StateInit to StateAcq
 #define INIT_2_ERROR   errorFlag                // StateInit to StateError
-#define INIT_2_TWO    !breakFlag                // StateInit to State2
+#define INIT_2_COMP   errorFlag                // StateInit to StateCompute
+#define INIT_2_SEND_DATA    !breakFlag                // StateInit to StateSendData
 
-#define ACQ_2_TWO     !breakFlag                // StateAcq to State2
+#define ACQ_2_SEND_DATA     !breakFlag                // StateAcq to StateSendData
 #define ACQ_2_ACQ      breakFlag                // StateAcq to StateAcq
+#define ACQ_2_COMP      breakFlag                // StateAcq to StateCompute
 #define ACQ_2_ERROR   !breakFlag && errorFlag   // StateAcq to StateError
 
-#define TWO_2_ACQ      breakFlag                // State2 to StateAcq
-#define TWO_2_TWO     !breakFlag                // State2 to State2
-#define TWO_2_ERROR    breakFlag && errorFlag   // State2 to StateError
+#define SEND_DATA_2_ACQ      breakFlag                // StateSendData to StateAcq
+#define SEND_DATA_2_SEND_DATA     !breakFlag                // StateSendData to StateSendData
+#define SEND_DATA_2_ERROR    breakFlag && errorFlag   // StateSendData to StateError
+#define SEND_DATA_2_COMP    breakFlag && errorFlag   // StateSendData to StateCompute
 
 #define ERROR_2_ACQ   !errorFlag && breakFlag   // StateError to StateAcq
-#define ERROR_2_TWO   !errorFlag && !breakFlag  // StateError to State2
+#define ERROR_2_SEND_DATA   !errorFlag && !breakFlag  // StateError to StateSendData
 #define ERROR_2_ERROR  errorFlag                // StateError to StateError
+#define ERROR_2_COMP  errorFlag                // StateError to StateCompute
+
+#define COMP_2_ACQ  errorFlag         // StateCompute to StateAcq
+#define COMP_2_SEND_DATA  errorFlag   // StateCompute to StateSendData
+#define COMP_2_COMP  errorFlag    // StateCompute to StateCompute
+#define COMP_2_ERROR  errorFlag   // StateCompute to StateError
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

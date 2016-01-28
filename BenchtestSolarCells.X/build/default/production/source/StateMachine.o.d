@@ -15,4 +15,6 @@ source/../headers/Setup.h  \
  source/../headers/../../../ChinookLib/ChinookLib.X/headers/ChinookUart.h  \
  source/../headers/../../../ChinookLib/ChinookLib.X/headers/ChinookSpi.h  \
  source/../headers/../../../ChinookLib/ChinookLib.X/headers/ChinookWdt.h  \
- source/../headers/StateFunctions.h 
+ source/../headers/StateFunctions.h  \
+source/../headers/Potentiometer.h  \
+ source/../headers/LedDriver.h 
