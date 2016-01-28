@@ -28,9 +28,38 @@
 //==============================================================================
 // State Machine private functions prototypes
 //==============================================================================
+
+/**************************************************************
+ * Function name  : ShutdownPot
+ * Purpose        : Shutdown a potentiometer.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3).
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
 static inline INT8 ShutdownPot(UINT8 numPot);   // Shutdown a potentiometer
+
+/**************************************************************
+ * Function name  : ResetPot
+ * Purpose        : Reset a pot at its mid-value.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3).
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
 static inline INT8 ResetPot   (UINT8 numPot);   // Reset a pot at its mid-value
-static inline INT16 SetPot(UINT32 desiredValue);  // Converts an ohmic value to a range of 0-255
+
+/**************************************************************
+ * Function name  : ComputePotValue
+ * Purpose        : Converts an ohmic value to a range of 0-255.
+ * Arguments      : UINT32 desiredValue, in ohms.
+ * Returns        : value on success, -1 on failure.
+ *************************************************************/
+static inline INT16 ComputePotValue(UINT32 desiredValue);
+
+/**************************************************************
+ * Function name  : InitPot
+ * Purpose        : Initialize a potentiometer.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3).
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
+static inline INT8 InitPot (UINT8 numPot);
 
 
 //==============================================================================

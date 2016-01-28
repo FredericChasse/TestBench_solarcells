@@ -24,23 +24,23 @@
 //==============================================================================
 // State Machine private functions prototypes
 //==============================================================================
-static inline INT8 ShutdownPot(UINT8 numPot);   // Shutdown a potentiometer
-static inline INT8 ResetPot   (UINT8 numPot);   // Reset a pot at its mid-value
-static inline INT16 SetPot(UINT32 desiredValue);  // Converts an ohmic value to a range of 0-255
 
 //==============================================================================
 // Potentiometers functions
 //==============================================================================
 
 
-//==============================================================================
-// ShutdownPot : Shutdown a potentiometer
-//==============================================================================
+/**************************************************************
+ * Function name  : ShutdownPot
+ * Purpose        : Shutdown a potentiometer.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3).
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
 static inline INT8 ShutdownPot(UINT8 numPot)
 {
   if ( (numPot < 5) && (numPot >= 0) )
   {
-    Port.E.ClearBits(numPot);
+    Port.E.ClearBits(1 << numPot);
     return 0;
   }
   else
@@ -48,17 +48,19 @@ static inline INT8 ShutdownPot(UINT8 numPot)
     return -1;
   }
 }
-//==============================================================================
 
 
-//==============================================================================
-// ResetPot : Reset a pot at its mid-value
-//==============================================================================
+/**************************************************************
+ * Function name  : ResetPot
+ * Purpose        : Reset a pot at its mid-value.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3).
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
 static inline INT8 ResetPot(UINT8 numPot)
 {
   if ( (numPot < 5) && (numPot >= 0) )
   {
-    Port.D.ClearBits(numPot + 8);
+    Port.D.ClearBits(1 << (numPot + 8));
     return 0;
   }
   else
@@ -66,13 +68,15 @@ static inline INT8 ResetPot(UINT8 numPot)
     return -1;
   }
 }
-//==============================================================================
 
 
-//==============================================================================
-// SetPot : Converts an ohmic value to a range of 0-255
-//==============================================================================
-static inline INT16 SetPot(UINT32 desiredValue)
+/**************************************************************
+ * Function name  : ComputePotValue
+ * Purpose        : Converts an ohmic value to a range of 0-255.
+ * Arguments      : UINT32 desiredValue, in ohms.
+ * Returns        : value on success, -1 on failure.
+ *************************************************************/
+static inline INT16 ComputePotValue(UINT32 desiredValue)
 {
   if ( (desiredValue <= MAX_POT_VALUE) && (desiredValue >= WIPER_VALUE) )
   {
@@ -83,4 +87,50 @@ static inline INT16 SetPot(UINT32 desiredValue)
     return -1;
   }
 }
-//==============================================================================
+
+
+/**************************************************************
+ * Function name  : InitPot
+ * Purpose        : Initialize a potentiometer.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3).
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
+static inline INT8 InitPot (UINT8 numPot)
+{
+  if ( (numPot < 5) && (numPot >= 0) )
+  {
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.ClearBits(1 << (numPot + 4));
+    Spi.SendCharacter(SPI3, 0);
+    Spi.SendCharacter(SPI3, 122); // MidValue
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.SetBits(1 << (numPot + 4));
+    
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.ClearBits(1 << (numPot + 4));
+    Spi.SendCharacter(SPI3, 1);
+    Spi.SendCharacter(SPI3, 122); // MidValue
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.SetBits(1 << (numPot + 4));
+    
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.ClearBits(1 << (numPot + 4));
+    Spi.SendCharacter(SPI3, 2);
+    Spi.SendCharacter(SPI3, 122); // MidValue
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.SetBits(1 << (numPot + 4));
+    
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.ClearBits(1 << (numPot + 4));
+    Spi.SendCharacter(SPI3, 3);
+    Spi.SendCharacter(SPI3, 122); // MidValue
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.SetBits(1 << (numPot + 4));
+    
+    return 0;
+  }
+  else
+  {
+    return -1;
+  }
+}
