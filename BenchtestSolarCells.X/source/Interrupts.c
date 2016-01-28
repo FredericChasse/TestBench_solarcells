@@ -538,3 +538,92 @@ void __ISR(_I2C_5_VECTOR, I2C5_INT_PRIORITY) I2c5InterruptHandler(void)
   }  // end if (master interrupt)
 }   // end interrupt
 //=============================================
+
+
+/*******************************************************************************
+ ***********************                               *************************
+ ********************           SPI INTERRUPTS            **********************
+ ***********************                               *************************
+ *******************************************************************************/
+
+
+//=============================================
+// Configure the SPI 3 interrupt handler
+//=============================================
+
+void __ISR(_SPI_3_VECTOR, S3_INTERRUPT_PRIORITY) Spi3InterruptHandler(void)
+{
+  UINT8  i
+        ,iMax   // Read/write max 8 bytes/interrupt
+        ,data   // used in SpiFifoWrite/Read functions
+        ;
+
+	// TX interrupt handling
+  //===========================================================
+
+  if ( INTGetEnable ( INT_SOURCE_SPI_TX(SPI3) ) )               // If TX interrupts enabled
+  {
+    if ( INTGetFlag ( INT_SOURCE_SPI_TX(SPI3) ) )               // If TX interrupt occured
+    {
+      if ( SpiChnTxBuffEmpty(SPI_CHANNEL3) && !Spi.Var.spiTxFifo[SPI3].bufEmpty )  // If TX buffer is ready to receive data and the user's TX buffer is not empty
+      {
+        if (Spi.Var.spiTxFifo[SPI3].lineBuffer.length < 8)     // Write max 8 bytes/interrupt
+        {
+          iMax = Spi.Var.spiTxFifo[SPI3].lineBuffer.length;
+        }
+        else
+        {
+          iMax = 8;
+        }
+
+        for (i = 0; i < iMax; i++)
+        {
+          SpiFifoRead((void *) &Spi.Var.spiTxFifo[SPI3], &data);  // Copy from user
+          SPI3BUF = data;                                         // Put data in PIC32's TX buffer
+        }
+      }
+
+      if (Spi.Var.spiTxFifo[SPI3].bufEmpty)                    // If User's TX buffer is empty
+      {
+        Spi.DisableTxInterrupts(SPI3);                          // Disable TX interrupts
+      }
+
+      INTClearFlag(INT_SOURCE_SPI_TX(SPI3));                    // Clear the TX interrupt Flag
+    }
+  }
+  //===========================================================
+  
+
+	// RX interrupt handling
+  //===========================================================
+  if ( INTGetEnable ( INT_SOURCE_SPI_RX(SPI3) ) )               // If RX interrupts enabled
+  {
+    if ( INTGetFlag ( INT_SOURCE_SPI_RX(SPI3) ) )               // If RX interrupt occured
+    {
+      i = 0;
+      iMax = 8;                                                   // Read max 8 bytes/interrupt
+      while (   SpiChnDataRdy(SPI_CHANNEL3)                // While RX data available
+            && !Spi.Var.spiRxFifo[UART3].bufFull                // and user's RX buffer not full
+            && (i < iMax)                                         // and under 8 bytes read
+            )
+      { // while ^
+        data = SpiChnGetC(SPI_CHANNEL3);                            // Get data for PIC32's RX FIFO buffer and copy it to user (next line)
+        if ( SpiFifoWrite((void *) &Spi.Var.spiRxFifo[SPI3], &data) < 0 ) // If copy to user did not work
+        {
+          break;                                                  // Exit while loop
+        }
+        i++;
+      } // end while
+
+      if (!Spi.Var.spiRxFifo[SPI3].bufEmpty)                   // If there is data in the user's RX buffer
+      {
+        Spi.Var.oIsRxDataAvailable[SPI3] = 1;                   // Set according flag
+      }
+
+      INTClearFlag (INT_SOURCE_SPI_RX(SPI3) );                  // Clear the RX interrupt Flag
+
+    }
+	}
+  //===========================================================
+}
+//=============================================
