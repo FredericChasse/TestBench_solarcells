@@ -26,6 +26,7 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #include "..\headers\Interrupts.h"
+#include "..\headers\Potentiometer.h"
 
 volatile BOOL oAdcReady = 0;
 
@@ -546,7 +547,6 @@ void __ISR(_I2C_5_VECTOR, I2C5_INT_PRIORITY) I2c5InterruptHandler(void)
  ***********************                               *************************
  *******************************************************************************/
 
-
 //=============================================
 // Configure the SPI 3 interrupt handler
 //=============================================
@@ -565,17 +565,18 @@ void __ISR(_SPI_3_VECTOR, S3_INTERRUPT_PRIORITY) Spi3InterruptHandler(void)
   {
     if ( INTGetFlag ( INT_SOURCE_SPI_TX(SPI3) ) )               // If TX interrupt occured
     {
-      if ( SpiChnTxBuffEmpty(SPI_CHANNEL3) && !Spi.Var.spiTxFifo[SPI3].bufEmpty )  // If TX buffer is ready to receive data and the user's TX buffer is not empty
+      if ( !SpiChnIsBusy(SPI_CHANNEL3) && !Spi.Var.spiTxFifo[SPI3].bufEmpty )  // If TX buffer is ready to receive data and the user's TX buffer is not empty
       {
-        if (Spi.Var.spiTxFifo[SPI3].lineBuffer.length < 8)     // Write max 8 bytes/interrupt
+        if (Spi.Var.spiTxFifo[SPI3].lineBuffer.length < Spi.Var.spiTxFifo[SPI3].maxWordsPerInt)     // Write max 8 bytes/interrupt
         {
           iMax = Spi.Var.spiTxFifo[SPI3].lineBuffer.length;
         }
         else
         {
-          iMax = 8;
+          iMax = Spi.Var.spiTxFifo[SPI3].maxWordsPerInt;
         }
 
+        CS0 = 0;
         for (i = 0; i < iMax; i++)
         {
           SpiFifoRead((void *) &Spi.Var.spiTxFifo[SPI3], &data);  // Copy from user
@@ -586,6 +587,7 @@ void __ISR(_SPI_3_VECTOR, S3_INTERRUPT_PRIORITY) Spi3InterruptHandler(void)
       if (Spi.Var.spiTxFifo[SPI3].bufEmpty)                    // If User's TX buffer is empty
       {
         Spi.DisableTxInterrupts(SPI3);                          // Disable TX interrupts
+        CS0 = 1;
       }
 
       INTClearFlag(INT_SOURCE_SPI_TX(SPI3));                    // Clear the TX interrupt Flag
@@ -601,7 +603,7 @@ void __ISR(_SPI_3_VECTOR, S3_INTERRUPT_PRIORITY) Spi3InterruptHandler(void)
     if ( INTGetFlag ( INT_SOURCE_SPI_RX(SPI3) ) )               // If RX interrupt occured
     {
       i = 0;
-      iMax = 8;                                                   // Read max 8 bytes/interrupt
+      iMax = Spi.Var.spiRxFifo[SPI3].maxWordsPerInt;            // Read max 8 bytes/interrupt
       while (   SpiChnDataRdy(SPI_CHANNEL3)                // While RX data available
             && !Spi.Var.spiRxFifo[UART3].bufFull                // and user's RX buffer not full
             && (i < iMax)                                         // and under 8 bytes read

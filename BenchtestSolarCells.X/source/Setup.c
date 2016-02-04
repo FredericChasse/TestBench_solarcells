@@ -123,7 +123,7 @@ void InitSpi(void)
   }
 
   // SPI interrupts not functionnal as of yet
-//  Spi.ConfigInterrupt(SPI3, SPI3_INTERRUPT_PRIORITY, SPI4_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI3
+  Spi.ConfigInterrupt(SPI3, SPI3_INTERRUPT_PRIORITY, SPI3_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI3
 }
 
 
@@ -164,23 +164,55 @@ void InitPorts(void)
                     | BIT_6  | BIT_7  | BIT_8  | BIT_9
                     | BIT_12 | BIT_13 | BIT_14 | BIT_15 );
 
-  Port.B.SetPinsAnalogIn(0xFFFF);
+  Port.B.SetPinsAnalogIn(0xFFFF);   // ADC0-15, RB0 = Vref+
   
-  Port.C.SetPinsDigitalIn(BIT_12 | BIT_12 | BIT_14);
-  Port.C.SetPinsDigitalOut(BIT_15);
+  Port.C.SetPinsDigitalIn ( BIT_13  // GPIO0
+                          | BIT_14  // GPIO1
+                          );
+  Port.C.CloseBits        ( BIT_12  // OSC_IN
+                          | BIT_15  // OSC_OUT
+                          );
   
-  Port.D.CloseBits(BIT_0);
-  Port.D.SetPinsDigitalIn(BIT_2);
-  Port.D.SetPinsDigitalOut(BIT_1 | BIT_3 | BIT_4 | BIT_5 | BIT_6 | BIT_7 | BIT_8 | BIT_9 | BIT_10 | BIT_11 );
+  Port.D.SetPinsDigitalIn ( BIT_2); // SPI_SDI
+  Port.D.SetPinsDigitalOut( BIT_0   // LED_OEn
+                          | BIT_1   // SPI_CLK
+                          | BIT_3   // SPI_SDO
+                          | BIT_4   // SPI_CS0
+                          | BIT_5   // SPI_CS1
+                          | BIT_6   // SPI_CS2
+                          | BIT_7   // SPI_CS3
+                          | BIT_8   // RST_POT0n
+                          | BIT_9   // RST_POT1n
+                          | BIT_10  // RST_POT2n
+                          | BIT_11  // RST_POT3n
+                          );
   
-  Port.E.SetPinsDigitalOut(BIT_0 | BIT_1 | BIT_2 | BIT_3 | BIT_4);
-  Port.E.SetPinsDigitalIn(BIT_5 | BIT_6 | BIT_7);
+  Port.E.SetPinsDigitalOut( BIT_0   // SHD_POT0n
+                          | BIT_1   // SHD_POT1n
+                          | BIT_2   // SHD_POT2n
+                          | BIT_3   // SHD_POT3n
+                          | BIT_4   // GPIO2
+                          );
+  Port.E.SetPinsDigitalIn ( BIT_5   // GP_SW1
+                          | BIT_6   // GP_SW2
+                          | BIT_7   // GP_SW3
+                          );
   
-  Port.F.SetPinsDigitalOut(BIT_0 | BIT_1 | BIT_4 | BIT_5);
-  Port.F.CloseBits(BIT_3);
+  Port.F.SetPinsDigitalOut( BIT_0   // LED_DEBUG1
+                          | BIT_1   // LED_DEBUG2
+                          | BIT_4   // I2C_SDA
+                          | BIT_5   // I2C_SCL
+                          );
+  Port.F.CloseBits        (BIT_3);  // No connect
   
-  Port.G.SetPinsDigitalOut(BIT_6 | BIT_8);
-  Port.G.SetPinsDigitalIn(BIT_2 | BIT_3 | BIT_7 | BIT_9); // RG2-3 only input pins
+  Port.G.SetPinsDigitalOut( BIT_6   // U2_TX
+                          | BIT_8   // U1_TX
+                          );
+  Port.G.SetPinsDigitalIn ( BIT_2   // GPIO3 (RG2-3 input only pins)
+                          | BIT_7   // U1_RX
+                          | BIT_9   // U2_RX
+                          ); 
+  Port.G.CloseBits        (BIT_3);  // No connect (previously LED_OEn)
 
 }
 
@@ -216,7 +248,7 @@ void InitUart (void)
 void InitSkadi(void)
 {
 //  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART1, FALSE);   // This system does not use UART interrupts
-  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART1, TRUE);   // This system uses UART interrupts
+  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART3, TRUE);   // This system uses UART interrupts
 }
 
 
@@ -295,16 +327,15 @@ void InitAdc(void)
 //===========================
 void StartInterrupts(void)
 {
-  INT8 err;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable timer interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Timer.EnableInterrupt(TIMER_1);
-  Timer.EnableInterrupt(TIMER_2);
-  Timer.EnableInterrupt(TIMER_3);
-  Timer.EnableInterrupt(TIMER_4);
-  Timer.EnableInterrupt(TIMER_5);
+//  Timer.EnableInterrupt(TIMER_1);
+//  Timer.EnableInterrupt(TIMER_2);
+//  Timer.EnableInterrupt(TIMER_3);
+//  Timer.EnableInterrupt(TIMER_4);
+//  Timer.EnableInterrupt(TIMER_5);
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -314,45 +345,33 @@ void StartInterrupts(void)
 // with Uart.PutTxFifoBuffer(...)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  Uart.EnableRxInterrupts (UART3);  // Enable RX Interrupts for UART3
-  Uart.DisableTxInterrupts(UART3);  // Disable TX Interrupts for UART3
-
-  Uart.EnableRxInterrupts (UART6);  // Enable RX Interrupts for UART6
-  Uart.DisableTxInterrupts(UART6);  // Disable TX Interrupts for UART6
+//  Uart.EnableRxInterrupts (UART3);  // Enable RX Interrupts for UART3
+//  Uart.DisableTxInterrupts(UART3);  // Disable TX Interrupts for UART3
+//
+//  Uart.EnableRxInterrupts (UART6);  // Enable RX Interrupts for UART6
+//  Uart.DisableTxInterrupts(UART6);  // Disable TX Interrupts for UART6
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable SPI interrupts             // Not functionnal yet
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//  Spi.EnableRxInterrupts(SPI3);   // Enable RX Interrupts for SPI3
-//  Spi.EnableTxInterrupts(SPI3);   // Enable TX Interrupts for SPI3
+//  Spi.EnableRxInterrupts (SPI3);   // Enable RX Interrupts for SPI3
+//  Spi.DisableTxInterrupts(SPI3);   // Enable TX Interrupts for SPI3
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable ADC interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Adc.EnableInterrupts();   // Works only when not in manual mode
+//  Adc.EnableInterrupts();   // Works only when not in manual mode
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable I2C interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-  err = I2c.EnableInterrupt (I2C5, I2C_MASTER_INTERRUPT);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-  err = I2c.DisableInterrupt(I2C5, I2C_SLAVE_INTERRUPT);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-  err = I2c.DisableInterrupt(I2C5, I2C_BUS_COLLISION_INTERRUPT);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
+  I2c.EnableInterrupt (I2C5, I2C_MASTER_INTERRUPT);
+  I2c.DisableInterrupt(I2C5, I2C_SLAVE_INTERRUPT);
+  I2c.DisableInterrupt(I2C5, I2C_BUS_COLLISION_INTERRUPT);
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

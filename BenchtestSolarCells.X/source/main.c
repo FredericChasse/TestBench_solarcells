@@ -82,13 +82,27 @@ void main(void)
   
   StateInit();
   LED1_OFF;
-  LED2_ON;
+  LED2_OFF;
+  INT16 data;
   
 	while(1)  //infinite loop
 	{
-    LED1_TOGGLE;
-    LED2_TOGGLE;
-    Timer.DelayMs(500);
+    if ((data = Uart.GetDataByte(UART3)) > 0)
+    {
+      Uart.SendDataByte(UART3, (const UINT8) data);
+    }
+    if ((data = Uart.GetDataByte(UART6)) > 0)
+    {
+      Uart.SendDataByte(UART6, (const UINT8) data);
+    }
+    if (!Port.E.ReadBits(BIT_7))
+    {
+      Uart.SendDataByte(UART3, 'E');
+      Uart.SendDataByte(UART6, 'E');
+    }
+//    LED1_TOGGLE;
+//    LED2_TOGGLE;
+//    Timer.DelayMs(500);
 //  // State machine entry & exit point
 //  //===========================================================
 //		(*pState)();          // jump to next state

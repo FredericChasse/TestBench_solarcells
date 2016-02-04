@@ -36,7 +36,7 @@
  * Arguments      : UINT8 numPot : the number of the pot (0-3).
  * Returns        : 0 on success, -1 on failure.
  *************************************************************/
-static inline INT8 ShutdownPot(UINT8 numPot)
+inline INT8 ShutdownPot(UINT8 numPot)
 {
   if ( (numPot < 5) && (numPot >= 0) )
   {
@@ -56,7 +56,7 @@ static inline INT8 ShutdownPot(UINT8 numPot)
  * Arguments      : UINT8 numPot : the number of the pot (0-3).
  * Returns        : 0 on success, -1 on failure.
  *************************************************************/
-static inline INT8 ResetPot(UINT8 numPot)
+inline INT8 ResetPot(UINT8 numPot)
 {
   if ( (numPot < 5) && (numPot >= 0) )
   {
@@ -76,7 +76,7 @@ static inline INT8 ResetPot(UINT8 numPot)
  * Arguments      : UINT32 desiredValue, in ohms.
  * Returns        : value on success, -1 on failure.
  *************************************************************/
-static inline INT16 ComputePotValue(UINT32 desiredValue)
+inline INT16 ComputePotValue(UINT32 desiredValue)
 {
   if ( (desiredValue <= MAX_POT_VALUE) && (desiredValue >= WIPER_VALUE) )
   {
@@ -95,7 +95,7 @@ static inline INT16 ComputePotValue(UINT32 desiredValue)
  * Arguments      : UINT8 numPot : the number of the pot (0-3).
  * Returns        : 0 on success, -1 on failure.
  *************************************************************/
-static inline INT8 InitPot (UINT8 numPot)
+inline INT8 InitPot (UINT8 numPot)
 {
   if ( (numPot < 5) && (numPot >= 0) )
   {

@@ -171,12 +171,21 @@ void StateInit(void)
 //  INIT_SPI;
 //  INIT_TIMER;
 //  INIT_ADC;
-//  INIT_UART;
+  INIT_UART;
 //  INIT_SKADI;
-//  INIT_I2C;
+  INIT_I2C;
 //  INIT_WDT;
   
-//  START_INTERRUPTS;
+  START_INTERRUPTS;
+  
+//  // Init digital potentiometers AD8403
+//  InitPot(0);
+//  InitPot(1);
+//  InitPot(2);
+//  InitPot(3);
+//  
+  // Init LED driver PCA9685
+  InitLedDriver();
 
 }
 

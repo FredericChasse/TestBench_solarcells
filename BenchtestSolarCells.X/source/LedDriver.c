@@ -83,9 +83,9 @@ sLedOff_t allLedOffReg =
  * Arguments      : None.
  * Returns        : None.
  *************************************************************/
-static inline void ShutdownLedDriver (void)
+inline void ShutdownLedDriver (void)
 {
-  Port.G.SetBits(BIT_3);    // Must be adjusted
+  Port.D.SetBits(BIT_0);
 }
 
 
@@ -95,9 +95,9 @@ static inline void ShutdownLedDriver (void)
  * Arguments      : None.
  * Returns        : 0 on success, -1 on failure.
  *************************************************************/
-static inline void TurnOnLedDriver (void)
+inline void TurnOnLedDriver (void)
 {
-  Port.G.ClearBits(BIT_3);    // Must be adjusted
+  Port.D.ClearBits(BIT_0);    // Must be adjusted
 }
 
 
@@ -107,7 +107,7 @@ static inline void TurnOnLedDriver (void)
  * Arguments      : None.
  * Returns        : None.
  *************************************************************/
-static inline void InitLedDriver (void)
+inline void InitLedDriver (void)
 {
   UINT8 dataBuffer[5]; 
   

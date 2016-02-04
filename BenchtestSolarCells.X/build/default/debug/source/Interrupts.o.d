@@ -1,4 +1,4 @@
-build/default/production/source/Interrupts.o:  \
+build/default/debug/source/Interrupts.o:  \
 source/Interrupts.c  \
  source/../headers/Interrupts.h  \
 source/../headers/Setup.h  \

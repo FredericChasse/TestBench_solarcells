@@ -35,7 +35,7 @@
  * Arguments      : None.
  * Returns        : None.
  *************************************************************/
-static inline void ShutdownLedDriver (void);
+inline void ShutdownLedDriver (void);
 
 /**************************************************************
  * Function name  : TurnOnLedDriver
@@ -43,7 +43,7 @@ static inline void ShutdownLedDriver (void);
  * Arguments      : None.
  * Returns        : None.
  *************************************************************/
-static inline void TurnOnLedDriver (void);
+inline void TurnOnLedDriver (void);
 
 /**************************************************************
  * Function name  : InitLedDriver
@@ -51,7 +51,7 @@ static inline void TurnOnLedDriver (void);
  * Arguments      : None.
  * Returns        : None.
  *************************************************************/
-static inline void InitLedDriver (void);
+inline void InitLedDriver (void);
 
 
 //==============================================================================
