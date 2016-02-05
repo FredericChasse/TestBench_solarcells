@@ -150,7 +150,7 @@ inline void InitLedDriver (void)
   mode2Reg.data.bits.outdrv = 1;
   mode2Reg.data.bits.outne = 0b11;
   
-  ledDriver.rw = 0;
+  ledDriver.rw = I2C_WRITE;
   dataBuffer[0] = ledDriver.byte;  // Slave address
   dataBuffer[1] = mode1Reg.regAdd; 
   dataBuffer[2] = mode1Reg.data.word; 
@@ -203,15 +203,15 @@ inline INT8 SetLedDutyCycle (UINT8 numLed, UINT16 dutyCycle)
   
   pwmValue = ((float) dutyCycle / 10.0f * 4096.0f / 100.0f - 1.0) + 0.5;
   
-  ledDriver.rw = 0;
+  ledDriver.rw = I2C_WRITE;
   dataBuffer[0] = ledDriver.byte;  // Slave address
   
   ledOnReg[numLed].bytes.word = 0;
   
-//  ledOffReg[numLed].bytes.data.dataHigh.bits.msb     = pwmValue >> 8;
-//  ledOffReg[numLed].bytes.data.dataLow               = pwmValue;
-  ledOffReg[numLed].bytes.data.dataHigh.bits.msb     = 0x7;
-  ledOffReg[numLed].bytes.data.dataLow               = 0xFF;
+  ledOffReg[numLed].bytes.data.dataHigh.bits.msb     = pwmValue >> 8;
+  ledOffReg[numLed].bytes.data.dataLow               = pwmValue;
+//  ledOffReg[numLed].bytes.data.dataHigh.bits.msb     = 0x7;
+//  ledOffReg[numLed].bytes.data.dataLow               = 0xFF;
   ledOffReg[numLed].bytes.data.dataHigh.bits.fullOff = 0;
   
   // Data to send  

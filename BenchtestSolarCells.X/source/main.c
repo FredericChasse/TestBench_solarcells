@@ -86,24 +86,37 @@ void main(void)
   LED1_OFF;
   LED2_OFF;
   INT16 data;
-  SetLedDutyCycle(0, 500);
-  while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
+  UINT8 i = 0;
+  INT8 err = 0;
+  
+  for (i = 0; i < 16; i++)
+  {
+    if (i != 7)
+    {
+      while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
+      err = SetLedDutyCycle(i, 750);
+      if (err < 0)
+      {
+        LED1_ON;
+      }
+    }
+  }
   
 	while(1)  //infinite loop
 	{
-    if ((data = Uart.GetDataByte(UART3)) > 0)
-    {
-      Uart.SendDataByte(UART3, (const UINT8) data);
-    }
-    if ((data = Uart.GetDataByte(UART6)) > 0)
-    {
-      Uart.SendDataByte(UART6, (const UINT8) data);
-    }
-    if (!Port.E.ReadBits(BIT_7))
-    {
-      Uart.SendDataByte(UART3, 'E');
-      Uart.SendDataByte(UART6, 'E');
-    }
+//    if ((data = Uart.GetDataByte(UART3)) > 0)
+//    {
+//      Uart.SendDataByte(UART3, (const UINT8) data);
+//    }
+//    if ((data = Uart.GetDataByte(UART6)) > 0)
+//    {
+//      Uart.SendDataByte(UART6, (const UINT8) data);
+//    }
+//    if (!Port.E.ReadBits(BIT_7))
+//    {
+//      Uart.SendDataByte(UART3, 'E');
+//      Uart.SendDataByte(UART6, 'E');
+//    }
 //    LED1_TOGGLE;
 //    LED2_TOGGLE;
 //    Timer.DelayMs(500);
