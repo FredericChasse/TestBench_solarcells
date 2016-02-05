@@ -86,7 +86,7 @@ void main(void)
   LED1_OFF;
   LED2_OFF;
   INT16 data;
-  SetLedPwm(0,0);
+  SetLedDutyCycle(0, 500);
   while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
   
 	while(1)  //infinite loop

@@ -54,12 +54,14 @@ inline void TurnOnLedDriver (void);
 inline void InitLedDriver (void);
 
 /**************************************************************
- * Function name  : InitLedDriver
- * Purpose        : Initialize all registers with LEDs at 0.
- * Arguments      : None.
- * Returns        : None.
+ * Function name  : SetLedPwm
+ * Purpose        : Set the duty cycle of one LED.
+ * Arguments      : UINT8 numLed : number of the LED to set. 0 - 15
+ *                  UINT16 dutyCycle : duty cycle in percentage. Precision 
+ *                  of 0.1%. Ex: 50.5% = 505. Max = 1000 (100.0%).
+ * Returns        : -1 on failure, 0 on success.
  *************************************************************/
-inline void SetLedPwm (UINT8 numLed, UINT16 pwmValue);
+inline INT8 SetLedDutyCycle (UINT8 numLed, UINT16 dutyCycle);
 
 
 //==============================================================================
