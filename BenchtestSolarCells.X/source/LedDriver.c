@@ -73,6 +73,21 @@ sLedOff_t allLedOffReg =
   ,.regAddHigh = 253
 };
 
+sLedOn_t ledOnReg0 = 
+{
+   .bytes.word = 0
+  ,.regAddLow  = 6
+  ,.regAddHigh = 7
+};
+
+sLedOff_t ledOffReg0 = 
+{
+   .bytes.word = 2047
+  ,.bytes.data.dataHigh.bits.fullOff = 0
+  ,.regAddLow  = 8
+  ,.regAddHigh = 9
+};
+
 //==============================================================================
 // Functions
 //==============================================================================
@@ -109,7 +124,7 @@ inline void TurnOnLedDriver (void)
  *************************************************************/
 inline void InitLedDriver (void)
 {
-  UINT8 dataBuffer[5]; 
+  UINT8 dataBuffer[6]; 
   
   // Shutdown all LEDs
   ShutdownLedDriver();
@@ -119,31 +134,69 @@ inline void InitLedDriver (void)
   mode1Reg.data.bits.sleep = 0;
   
   mode2Reg.data.bits.invrt = 0;
-  mode2Reg.data.bits.och = 1;
+  mode2Reg.data.bits.och = 0;
   mode2Reg.data.bits.outdrv = 1;
   mode2Reg.data.bits.outne = 0b11;
   
-  dataBuffer[0] = mode1Reg.regAdd; 
-  dataBuffer[1] = mode1Reg.data.word; 
-  dataBuffer[2] = mode2Reg.data.word; 
+  ledDriver.rw = 0;
+  dataBuffer[0] = ledDriver.byte;  // Slave address
+  dataBuffer[1] = mode1Reg.regAdd; 
+  dataBuffer[2] = mode1Reg.data.word; 
+  dataBuffer[3] = mode2Reg.data.word; 
   
   while(I2c.Var.oI2cReadIsRunning[I2C5]);   // Wait for any I2C5 read sequence to end 
-  I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 3, TRUE);
+  I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 4, TRUE);
+  while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
   
   // Write OFF to all LEDs
   allLedOnReg .bytes.data.dataHigh.bits.fullOn   = 0;
   allLedOffReg.bytes.data.dataHigh.bits.fullOff  = 1;
   
-  dataBuffer[0] = allLedOnReg .regAddLow;
-  dataBuffer[1] = allLedOnReg .bytes.data.dataLow;
-  dataBuffer[2] = allLedOnReg .bytes.data.dataHigh.word;
-  dataBuffer[3] = allLedOffReg.bytes.data.dataLow;
-  dataBuffer[4] = allLedOffReg.bytes.data.dataHigh.word;
+  dataBuffer[1] = allLedOnReg .regAddLow;
+  dataBuffer[2] = allLedOnReg .bytes.data.dataLow;
+  dataBuffer[3] = allLedOnReg .bytes.data.dataHigh.word;
+  dataBuffer[4] = allLedOffReg.bytes.data.dataLow;
+  dataBuffer[5] = allLedOffReg.bytes.data.dataHigh.word;
   
   while(I2c.Var.oI2cReadIsRunning[I2C5]);   // Wait for any I2C5 read sequence to end 
   while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
-  I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 5, TRUE);
+  I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 6, TRUE);
   
   while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end
   TurnOnLedDriver();
+}
+
+
+/**************************************************************
+ * Function name  : InitLedDriver
+ * Purpose        : Initialize all registers with LEDs at 0.
+ * Arguments      : None.
+ * Returns        : None.
+ *************************************************************/
+inline void SetLedPwm (UINT8 numLed, UINT16 pwmValue)
+{
+  UINT8 dataBuffer[6]; 
+  
+  ledDriver.rw = 0;
+  dataBuffer[0] = ledDriver.byte;  // Slave address
+  
+  ledOnReg0.bytes.data.dataHigh.bits.fullOn = 0;
+  ledOnReg0.bytes.data.dataHigh.bits.msb    = 0;
+  ledOnReg0.bytes.data.dataLow              = 0;
+  
+  ledOffReg0.bytes.data.dataHigh.bits.msb     = 0x7;
+  ledOffReg0.bytes.data.dataLow               = 0xFF;
+  ledOffReg0.bytes.data.dataHigh.bits.fullOff = 0;
+  
+  // Set operation mode
+  
+  dataBuffer[1] = ledOnReg0.regAddLow;
+  dataBuffer[2] = ledOnReg0.bytes.data.dataLow;
+  dataBuffer[3] = ledOnReg0.bytes.data.dataHigh.word;
+  dataBuffer[4] = ledOffReg0.bytes.data.dataLow;
+  dataBuffer[5] = ledOffReg0.bytes.data.dataHigh.word;
+  
+  while(I2c.Var.oI2cReadIsRunning[I2C5]);   // Wait for any I2C5 read sequence to end 
+  while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
+  I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 6, TRUE);
 }

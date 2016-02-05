@@ -65,7 +65,7 @@
  * |----------+-------------+-------------------|
  * | 5        | 0           |                   |
  * | 5        | 1           |                   |
- * | 5        | 2           | I2C 4             |
+ * | 5        | 2           | I2C 5             |
  * | 5        | 3           |                   |
  * |----------+-------------+-------------------|
  * | 6        | 0           |                   |
@@ -139,10 +139,10 @@
 //===============================================
 // I2C interrupts priorities and subpriorities
 //===============================================
-#define I2C5_INTERRUPT_PRIORITY          4           // Used in ChinookLib function
-#define I2C5_INT_PRIORITY                ipl4auto    // Used in ISR
+#define I2C5_INTERRUPT_PRIORITY          5           // Used in ChinookLib function
+#define I2C5_INT_PRIORITY                ipl5auto    // Used in ISR
 
-#define I2C5_INTERRUPT_SUBPRIORITY       0
+#define I2C5_INTERRUPT_SUBPRIORITY       2
 //===============================================
 
 

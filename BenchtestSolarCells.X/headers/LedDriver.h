@@ -53,6 +53,14 @@ inline void TurnOnLedDriver (void);
  *************************************************************/
 inline void InitLedDriver (void);
 
+/**************************************************************
+ * Function name  : InitLedDriver
+ * Purpose        : Initialize all registers with LEDs at 0.
+ * Arguments      : None.
+ * Returns        : None.
+ *************************************************************/
+inline void SetLedPwm (UINT8 numLed, UINT16 pwmValue);
+
 
 //==============================================================================
 // Macro definitions
@@ -74,14 +82,14 @@ typedef struct
   {
     struct
     {
-      UINT8  restart  : 1
-            ,extclk   : 1
-            ,ai       : 1
-            ,sleep    : 1
-            ,sub1     : 1
-            ,sub2     : 1
+      UINT8  allcall  : 1
             ,sub3     : 1
-            ,allcall  : 1
+            ,sub2     : 1
+            ,sub1     : 1
+            ,sleep    : 1
+            ,ai       : 1
+            ,extclk   : 1
+            ,restart  : 1
             ;
     } bits;
     UINT8 word;
@@ -97,11 +105,11 @@ typedef struct
   {
     struct
     {
-      UINT8         : 3
-            ,invrt  : 1
-            ,och    : 1
+      UINT8  outne  : 2
             ,outdrv : 1
-            ,outne  : 2
+            ,och    : 1
+            ,invrt  : 1
+            ,       : 3
             ;
     } bits;
     UINT8 word;
@@ -122,9 +130,9 @@ typedef struct
       {
         struct
         {
-          UINT8         : 3
+          UINT8  msb    : 4
                 ,fullOn : 1
-                ,msb    : 4
+                ,       : 3
                 ;
         } bits;
         UINT8 word;
@@ -149,9 +157,9 @@ typedef struct
       {
         struct
         {
-          UINT8          : 3
-                ,fullOff : 1
-                ,msb     : 4
+          UINT8  msb      : 4
+                ,fullOff  : 1
+                ,         : 3
                 ;
         } bits;
         UINT8 word;
