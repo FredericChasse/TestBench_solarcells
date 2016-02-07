@@ -31,29 +31,28 @@
 //==============================================================================
 
 /**************************************************************
- * Function name  : LedDebug
- * Purpose        : Toggle LED_DEBUG.
- * Arguments      : None.
+ * Function name  : LedToggle
+ * Purpose        : Toggle Led 1 or 2 depending on the arguments
+ * Arguments      : Received from Skadi functions
  * Returns        : None.
  *************************************************************/
-void LedDebug();
+void LedToggle();
 
 /**************************************************************
- * Function name  : LedCan
- * Purpose        : Toggle LED_CAN.
- * Arguments      : None.
+ * Function name  : SetPwm
+ * Purpose        : Set the duty cycle of a LED
+ * Arguments      : 1 : LED num (0 - 15), 2 : duty cycle * 10
  * Returns        : None.
  *************************************************************/
-void LedCan();
+void SetPwm();
 
 /**************************************************************
- * Function name  : ReInitSystem
- * Purpose        : Redo StateInit().
+ * Function name  : ClearScreen
+ * Purpose        : Clear the terminal window
  * Arguments      : None.
  * Returns        : None.
  *************************************************************/
-void ReInitSystem();
-
+void ClearScreen();
 
 //==============================================================================
 // Macro definitions

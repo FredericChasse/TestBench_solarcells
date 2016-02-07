@@ -83,27 +83,29 @@ void main(void)
   StateInit();
 //  Port.E.SetPinsDigitalOut(BIT_4);
 //  Port.E.ClearBits(BIT_4);
-  LED1_OFF;
-  LED2_OFF;
   INT16 data;
   UINT8 i = 0;
   INT8 err = 0;
+  while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
+  err = SetLedDutyCycle(0, 500);
+//  ShutdownLedDriver();
   
-  for (i = 0; i < 16; i++)
-  {
-    if (i != 7)
-    {
-      while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
-      err = SetLedDutyCycle(i, 750);
-      if (err < 0)
-      {
-        LED1_ON;
-      }
-    }
-  }
+//  for (i = 0; i < 16; i++)
+//  {
+//    if (i != 7)
+//    {
+//      while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
+//      err = SetLedDutyCycle(i, 750);
+//      if (err < 0)
+//      {
+//        LED1_ON;
+//      }
+//    }
+//  }
   
 	while(1)  //infinite loop
 	{
+    Skadi.GetCmdMsgFifo();
 //    if ((data = Uart.GetDataByte(UART3)) > 0)
 //    {
 //      Uart.SendDataByte(UART3, (const UINT8) data);

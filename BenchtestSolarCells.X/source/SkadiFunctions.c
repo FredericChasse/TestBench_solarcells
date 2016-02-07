@@ -38,66 +38,76 @@
 //==============================================================================
 
 /**************************************************************
- * Function name  : LedDebug
- * Purpose        : Toggle LedDebug depending on the arguments
+ * Function name  : LedToggle
+ * Purpose        : Toggle Led 1 or 2 depending on the arguments
  * Arguments      : Received from Skadi functions
  * Returns        : None.
  *************************************************************/
-void LedDebug(sSkadi_t *skadi, sSkadiArgs_t args)
+void LedToggle(sSkadi_t *skadi, sSkadiArgs_t args)
 {
-  UINT8 errorMsg[] = {"Cette led n'existe pas!\r\n"};
+  sUartLineBuffer_t buffer;
 
-  int led = atoi(args.elements[0]);   // Convert argument to int
+  UINT8 led = atoi(args.elements[0]);   // Convert argument to int
 
   if (led == 1)
   {
-#ifdef __32MX795F512L__
-    Port.A.ToggleBits(BIT_3);
-#elif defined __32MX795F512H__
-    Port.B.ToggleBits(BIT_12);
-#endif
+    LED1_TOGGLE;
+  }
+  else if (led == 2)
+  {
+    LED2_TOGGLE;
   }
   else
   {
-    Uart.SendDataBuffer(UART1, errorMsg, sizeof(errorMsg));
+    buffer.length = sprintf(buffer.buffer, "Cette led n'existe pas!\r\n\n");
+    Uart.PutTxFifoBuffer(UART3, &buffer);
   }
 }
 
 
 /**************************************************************
- * Function name  : LedCan
- * Purpose        : Toggle LedCan depending on the arguments
- * Arguments      : Received from Skadi functions
+ * Function name  : ClearScreen
+ * Purpose        : Clear the terminal window
+ * Arguments      : None.
  * Returns        : None.
  *************************************************************/
-void LedCan(sSkadi_t *skadi, sSkadiArgs_t args)
+void ClearScreen(sSkadi_t *skadi, sSkadiArgs_t args)
 {
-  UINT8 errorMsg[] = {"Cette led n'existe pas!\r\n"};
+  sUartLineBuffer_t buffer;
+  buffer.buffer[0] = '\n';
+  buffer.buffer[1] = '\r';
+  UINT8 i;
 
-  int led = atoi(args.elements[0]);   // Convert argument to int
-
-  if (led == 2)
+  for (i = 2; i < 50; i++)
   {
-#ifdef __32MX795F512L__
-    Port.C.ToggleBits(BIT_1);
-#elif defined __32MX795F512H__
-    Port.B.ToggleBits(BIT_13);
-#endif
+    buffer.buffer[i] = '\n';
   }
-  else
-  {
-    Uart.SendDataBuffer(UART1, errorMsg, sizeof(errorMsg));
-  }
+  buffer.length = i;
+  
+  Uart.PutTxFifoBuffer(UART3, &buffer);
 }
 
 
 /**************************************************************
- * Function name  : ReInitSystem
- * Purpose        : Redo StateInit()
- * Arguments      : Received from Skadi functions
+ * Function name  : SetPwm
+ * Purpose        : Set the duty cycle of a LED
+ * Arguments      : 1 : LED num (0 - 15), 2 : duty cycle * 10
  * Returns        : None.
  *************************************************************/
-void ReInitSystem(sSkadi_t *skadi, sSkadiArgs_t args)
+void SetPwm(sSkadi_t *skadi, sSkadiArgs_t args)
 {
-  StateInit();
+  sUartLineBuffer_t buffer;
+
+  UINT16 led = atoi(args.elements[0]);   // Convert argument to int
+  UINT16 pwm = atoi(args.elements[1]);   // Convert argument to int
+
+  if ( (led <= 15) && (pwm <= 1000) )
+  {
+    SetLedDutyCycle(led, pwm);
+  }
+  else
+  {
+    buffer.length = sprintf(buffer.buffer, "Mauvais argument!\r\n\n");
+    Uart.PutTxFifoBuffer(UART3, &buffer);
+  }
 }

@@ -42,9 +42,9 @@
  **********************************/
 sSkadiCommand_t skadiCommandTable[] =
 {
-   {"LedDebug"    , LedDebug    , 1, "Usage : flash Led DEBUG"}   // 1 argument
-  ,{"LedCan"      , LedCan      , 1, "Usage : flash Led CAN"}     // 1 argument
-  ,{"ReInitSystem", ReInitSystem, 0, "Redo StateInit()"}          // 0 argument
+   {"led"         , LedToggle   , 1 , "\t\t| flash Led 1 or 2"}    // 1 argument
+  ,{"pwm"         , SetPwm   , 2 , "\t\t| Set the duty cycle of a LED"}    // 2 argument
+  ,{"clc"         , ClearScreen , 0 , "\t\t| Clear terminal window.\t\t\t| 0 arg"}// 1 argument
 };
 
 
@@ -166,10 +166,9 @@ void InitPorts(void)
 
   Port.B.SetPinsAnalogIn(0xFFFF);   // ADC0-15, RB0 = Vref+
   
-  Port.C.SetPinsDigitalIn ( BIT_13  // GPIO0
-                          | BIT_14  // GPIO1
-                          );
   Port.C.CloseBits        ( BIT_12  // OSC_IN
+                          | BIT_13  // GPIO0
+                          | BIT_14  // GPIO1
                           | BIT_15  // OSC_OUT
                           );
   
@@ -191,8 +190,9 @@ void InitPorts(void)
                           | BIT_1   // SHD_POT1n
                           | BIT_2   // SHD_POT2n
                           | BIT_3   // SHD_POT3n
-                          | BIT_4   // GPIO2
                           );
+  Port.E.CloseBits (BIT_4);         // GPIO2
+  
   Port.E.SetPinsDigitalIn ( BIT_5   // GP_SW1
                           | BIT_6   // GP_SW2
                           | BIT_7   // GP_SW3
@@ -208,11 +208,28 @@ void InitPorts(void)
   Port.G.SetPinsDigitalOut( BIT_6   // U2_TX
                           | BIT_8   // U1_TX
                           );
-  Port.G.SetPinsDigitalIn ( BIT_2   // GPIO3 (RG2-3 input only pins)
-                          | BIT_7   // U1_RX
+  Port.G.SetPinsDigitalIn ( BIT_7   // U1_RX
                           | BIT_9   // U2_RX
                           ); 
-  Port.G.CloseBits        (BIT_3);  // No connect (previously LED_OEn)
+  Port.G.CloseBits        ( BIT_2   // GPIO3 (RG2-3 input only pins)
+                          | BIT_3   // No connect (previously LED_OEn)
+                          );
+  
+  Port.D.SetBits          ( BIT_0   // LED Driver disabled
+                          | BIT_8   // RST_POT0n
+                          | BIT_9   // RST_POT1n
+                          | BIT_10  // RST_POT2n
+                          | BIT_11  // RST_POT3n
+                          );
+  
+  Port.E.ClearBits        ( BIT_0 // SHD_POT0n
+                          | BIT_1 // SHD_POT1n
+                          | BIT_2 // SHD_POT2n
+                          | BIT_3 // SHD_POT3n
+                          );
+  
+  LED1_OFF;
+  LED2_OFF;
 
 }
 
@@ -345,11 +362,11 @@ void StartInterrupts(void)
 // with Uart.PutTxFifoBuffer(...)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-//  Uart.EnableRxInterrupts (UART3);  // Enable RX Interrupts for UART3
-//  Uart.DisableTxInterrupts(UART3);  // Disable TX Interrupts for UART3
-//
-//  Uart.EnableRxInterrupts (UART6);  // Enable RX Interrupts for UART6
-//  Uart.DisableTxInterrupts(UART6);  // Disable TX Interrupts for UART6
+  Uart.EnableRxInterrupts (UART3);  // Enable RX Interrupts for UART3
+  Uart.DisableTxInterrupts(UART3);  // Disable TX Interrupts for UART3
+
+  Uart.EnableRxInterrupts (UART6);  // Enable RX Interrupts for UART6
+  Uart.DisableTxInterrupts(UART6);  // Disable TX Interrupts for UART6
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

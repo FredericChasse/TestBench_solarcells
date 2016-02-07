@@ -172,7 +172,7 @@ void StateInit(void)
 //  INIT_TIMER;
 //  INIT_ADC;
   INIT_UART;
-//  INIT_SKADI;
+  INIT_SKADI;
   INIT_I2C;
 //  INIT_WDT;
   
