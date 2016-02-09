@@ -81,4 +81,13 @@ void StartInterrupts  (void);
 #define LED1_TOGGLE   Port.F.ToggleBits (BIT_0)  
 #define LED2_TOGGLE   Port.F.ToggleBits (BIT_1)  
 
+#define U_MATLAB      UART6
+#define U_DBG         UART3
+
+#define SW1           Port.E.ReadBits(BIT_5)
+#define SW2           Port.E.ReadBits(BIT_6)
+#define SW3           Port.E.ReadBits(BIT_7)
+
+#define PI            3.14159265359f
+
 #endif	/* __SETUP_H__ */

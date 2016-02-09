@@ -54,15 +54,15 @@ void StateScheduler (void);   // State Scheduler. Decides which state is next
 // conditions tested in the defines should be changed
 // to proper tests
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define INIT_2_ACQ     breakFlag                // StateInit to StateAcq
-#define INIT_2_ERROR   errorFlag                // StateInit to StateError
-#define INIT_2_COMP   errorFlag                // StateInit to StateCompute
-#define INIT_2_SEND_DATA    !breakFlag                // StateInit to StateSendData
+#define INIT_2_ACQ     1                // StateInit to StateAcq
+#define INIT_2_ERROR   0                // StateInit to StateError
+#define INIT_2_COMP   0                // StateInit to StateCompute
+#define INIT_2_SEND_DATA    0                // StateInit to StateSendData
 
-#define ACQ_2_SEND_DATA     !breakFlag                // StateAcq to StateSendData
-#define ACQ_2_ACQ      breakFlag                // StateAcq to StateAcq
-#define ACQ_2_COMP      breakFlag                // StateAcq to StateCompute
-#define ACQ_2_ERROR   !breakFlag && errorFlag   // StateAcq to StateError
+#define ACQ_2_SEND_DATA     0                // StateAcq to StateSendData
+#define ACQ_2_ACQ      1                // StateAcq to StateAcq
+#define ACQ_2_COMP      0                // StateAcq to StateCompute
+#define ACQ_2_ERROR   0   // StateAcq to StateError
 
 #define SEND_DATA_2_ACQ      breakFlag                // StateSendData to StateAcq
 #define SEND_DATA_2_SEND_DATA     !breakFlag                // StateSendData to StateSendData

@@ -29,13 +29,55 @@
 
 
 //==============================================================================
-// State Machine private functions prototypes
+// State Machine public functions prototypes
 //==============================================================================
+
+// Buttons functions
+// =======================================
+void AssessButtons (void);
+// =======================================
 
 
 //==============================================================================
 // Macro definitions
 //==============================================================================
+
+// Typedef for mapping the buttons on the board
+typedef union
+{
+  struct
+  {
+    UINT8  sw1       : 1
+          ,sw2       : 1
+          ,sw3       : 1
+          ,          : 5
+          ;
+  } bits;
+
+  UINT8 byte;
+
+} Buttons_t;
+
+typedef union
+{
+  struct
+  {
+    UINT8  sw1       : 1
+          ,sw2       : 1
+          ,sw3       : 1
+          ,          : 5
+          ;
+  } bits;
+
+  UINT8 byte;
+
+} Chng_t;
+
+typedef struct sButtonStates
+{
+  Buttons_t buttons;
+  Chng_t    chng;
+} sButtonStates_t;
 
 
 //==============================================================================

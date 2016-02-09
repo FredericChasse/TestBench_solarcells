@@ -240,12 +240,13 @@ void InitPorts(void)
 void InitUart (void)
 {
 
-  UartConfig_t       oConfig      = UART_ENABLE_PINS_TX_RX_ONLY;
-  UartFifoMode_t     oFifoMode    = UART_INTERRUPT_ON_TX_BUFFER_EMPTY | UART_INTERRUPT_ON_RX_NOT_EMPTY;
-  UartLineCtrlMode_t oLineControl = UART_DATA_SIZE_8_BITS | UART_PARITY_NONE | UART_STOP_BITS_1;
+  UartConfig_t       oConfigDbg     = UART_ENABLE_PINS_TX_RX_ONLY;
+  UartConfig_t       oConfigMatlab  = UART_ENABLE_PINS_TX_RX_ONLY | UART_ENABLE_HIGH_SPEED;
+  UartFifoMode_t     oFifoMode      = UART_INTERRUPT_ON_TX_BUFFER_EMPTY | UART_INTERRUPT_ON_RX_NOT_EMPTY;
+  UartLineCtrlMode_t oLineControl   = UART_DATA_SIZE_8_BITS | UART_PARITY_NONE | UART_STOP_BITS_1;
 
-  Uart.Open(UART3, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 3 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
-  Uart.Open(UART6, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 6 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
+  Uart.Open(UART3, BAUD9600  , oConfigDbg, oFifoMode, oLineControl);   // Open UART 3 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
+  Uart.Open(UART6, BAUD115200, oConfigMatlab, oFifoMode, oLineControl);   // Open UART 6 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 
   Uart.EnableRx(UART3);
   Uart.EnableRx(UART6);

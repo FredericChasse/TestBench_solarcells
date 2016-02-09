@@ -186,6 +186,7 @@ void StateInit(void)
 //  
   // Init LED driver PCA9685
   InitLedDriver();
+  ShutdownLedDriver();
 
 }
 
@@ -196,61 +197,65 @@ void StateInit(void)
 //===============================================================
 void StateAcq(void)
 {
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  //==================================================================
   // VARIABLE DECLARATIONS
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  //==================================================================
   UINT32 cellVoltage[8] = {0};
 
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  //==================================================================
   // ADC READ
   // Read values from ADC
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if (oAdcReady)
-  {
-    memcpy(cellVoltage, (void *) &Adc.Var.adcReadValues[8], sizeof(UINT32) * 8);
-    oAdcReady = 0;
-  }
+  //==================================================================
+//  if (oAdcReady)
+//  {
+//    memcpy(cellVoltage, (void *) &Adc.Var.adcReadValues[8], sizeof(UINT32) * 8);
+//    oAdcReady = 0;
+//  }
+  
+  //==================================================================
+  // Check for skadi messages or button changes
+  //==================================================================
+  Skadi.GetCmdMsgFifo();
+  
+  AssessButtons();
 
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  //==================================================================
   // SECOND PART OF STATE
   // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-  sUartLineBuffer_t   uart3Data =  {
-                                    .buffer = {0}
-                                   ,.length =  0
-                                  }
-                    ,uart6Data =  {
-                                    .buffer = {0}
-                                   ,.length =  0
-                                  }
-                    ;
-  
-  INT32 err = 0;
+  //==================================================================
+//  sUartLineBuffer_t   uart3Data =  {
+//                                    .buffer = {0}
+//                                   ,.length =  0
+//                                  }
+//                    ,uart6Data =  {
+//                                    .buffer = {0}
+//                                   ,.length =  0
+//                                  }
+//                    ;
+//  
+//  INT32 err = 0;
   
 //  Skadi.GetCmdMsg();    // Use if you do not use UART interrupts
   
-  if (Uart.Var.oIsRxDataAvailable[UART3])                 // Check if RX interrupt occured
-  {
-    err = Uart.GetRxFifoBuffer(UART3, &uart3Data, FALSE); // put received data in uart3Data
-    if (err >= 0)                                         // If no error occured
-    {
-      /* Do something */
-      Uart.PutTxFifoBuffer(UART3, &uart3Data);            // Put data received in TX FIFO buffer
-    }
-  }
-  
-  if (Uart.Var.oIsRxDataAvailable[UART6])                 // Check if RX interrupt occured
-  {
-    err = Uart.GetRxFifoBuffer(UART6, &uart6Data, FALSE); // put received data in uart6Data
-    if (err >= 0)                                         // If no error occured
-    {
-      /* Do something */
-      Uart.PutTxFifoBuffer(UART6, &uart6Data);            // Put data received in TX FIFO buffer
-    }
-  }
+//  if (Uart.Var.oIsRxDataAvailable[UART3])                 // Check if RX interrupt occured
+//  {
+//    err = Uart.GetRxFifoBuffer(UART3, &uart3Data, FALSE); // put received data in uart3Data
+//    if (err >= 0)                                         // If no error occured
+//    {
+//      /* Do something */
+//      Uart.PutTxFifoBuffer(UART3, &uart3Data);            // Put data received in TX FIFO buffer
+//    }
+//  }
+//  
+//  if (Uart.Var.oIsRxDataAvailable[UART6])                 // Check if RX interrupt occured
+//  {
+//    err = Uart.GetRxFifoBuffer(UART6, &uart6Data, FALSE); // put received data in uart6Data
+//    if (err >= 0)                                         // If no error occured
+//    {
+//      /* Do something */
+//      Uart.PutTxFifoBuffer(UART6, &uart6Data);            // Put data received in TX FIFO buffer
+//    }
+//  }
 
 }
 

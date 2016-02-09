@@ -54,7 +54,7 @@ sMode2Reg_t mode2Reg =
 
 sPreScaleReg_t prescaleReg = 
 {
-   .value  = 3
+   .value  = 5
   ,.regAdd = 254
 };
 
@@ -146,8 +146,10 @@ inline void InitLedDriver (void)
   mode1Reg.data.bits.sleep = 0;
   
   mode2Reg.data.bits.invrt = 0;
+//  mode2Reg.data.bits.invrt = 1;
   mode2Reg.data.bits.och = 0;
   mode2Reg.data.bits.outdrv = 1;
+//  mode2Reg.data.bits.outdrv = 0;
   mode2Reg.data.bits.outne = 0b11;
   
   ledDriver.rw = I2C_WRITE;
@@ -173,6 +175,34 @@ inline void InitLedDriver (void)
   while(I2c.Var.oI2cReadIsRunning[I2C5]);   // Wait for any I2C5 read sequence to end 
   while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
   I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 6, TRUE);
+  
+  
+  // PWM frequency
+  mode1Reg.data.bits.sleep = 1;
+  dataBuffer[1] = mode1Reg.regAdd;
+  dataBuffer[2] = mode1Reg.data.word;
+  
+  while(I2c.Var.oI2cReadIsRunning[I2C5]);   // Wait for any I2C5 read sequence to end 
+  while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
+  I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 3, TRUE);
+  
+//  prescaleReg.value = 5;                // PWM frequency of 1017.25 Hz
+//  prescaleReg.value = 60;                // PWM frequency of 100 Hz
+  prescaleReg.value = 30;                // PWM frequency of 200 Hz
+  dataBuffer[1] = prescaleReg.regAdd;
+  dataBuffer[2] = prescaleReg.value;    
+  
+  while(I2c.Var.oI2cReadIsRunning[I2C5]);   // Wait for any I2C5 read sequence to end 
+  while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
+  I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 3, TRUE);
+  
+  mode1Reg.data.bits.sleep = 0;
+  dataBuffer[1] = mode1Reg.regAdd;
+  dataBuffer[2] = mode1Reg.data.word;
+  
+  while(I2c.Var.oI2cReadIsRunning[I2C5]);   // Wait for any I2C5 read sequence to end 
+  while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
+  I2c.AddDataToFifoWriteQueue(I2C5, &dataBuffer[0], 3, TRUE);
   
   while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end
   TurnOnLedDriver();
