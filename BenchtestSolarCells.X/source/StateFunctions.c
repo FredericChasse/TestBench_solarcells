@@ -39,6 +39,15 @@ sButtonStates_t buttons =
  ,.buttons.bits.sw3 = 1
 };
 
+  
+float sinus[2][15] = { {0 , .4189 , .8378 , 1.2566 , 1.6755 , 2.0944 , 2.5133 , 2.9322 , 3.3510 , 3.7699 , 4.1888 , 4.6077 , 5.0265 , 5.4454 , 5.8643} ,
+                       {0 , .4067 , .7431 , .9511  , .9945  , .8660  , .5878  , .2079  , -.2079 , -.5878 , -.8660 , -.9945 , -.9511 , -.7431 , -.4067} };
+  
+sUartLineBuffer_t buffer = 
+{ 
+   .buffer = {0} 
+  ,.length =  0 
+};
 
 //==============================================================================
 // State Machine private functions prototypes
@@ -57,18 +66,6 @@ sButtonStates_t buttons =
 void AssessButtons (void)
 {
   UINT16 i = 0;
-  
-  float sin[2][15] = { {0 , .4189 , .8378 , 1.2566 , 1.6755 , 2.0944 , 2.5133 , 2.9322 , 3.3510 , 3.7699 , 4.1888 , 4.6077 , 5.0265 , 5.4454 , 5.8643} ,
-                       {0 , .4067 , .7431 , .9511  , .9945  , .8660  , .5878  , .2079  , -.2079 , -.5878 , -.8660 , -.9945 , -.9511 , -.7431 , -.4067} };
-  
-  sUartLineBuffer_t buffer = 
-  { 
-     .buffer = {0} 
-    ,.length =  0 
-  };
-  
-  memcpy(buffer.buffer, sin, 30*4);
-  buffer.length = 30*4;
   
   // <editor-fold defaultstate="collapsed" desc="Check changes on board">
   // <editor-fold defaultstate="collapsed" desc="Change on SW1 on board">
@@ -106,13 +103,14 @@ void AssessButtons (void)
 
       if (!buttons.buttons.bits.sw1)     // If SW1 is pressed
       {
+        memcpy(buffer.buffer, sinus, 120);
+        buffer.length = 120;
+        
         Uart.PutTxFifoBuffer(U_MATLAB, &buffer);
         while(!SW1);
         for (i = 0; i < 15; i++)
         {
-          sin[0][i] += 2*PI;
-          memcpy(buffer.buffer, sin, 120);
-          buffer.length = 120;
+          sinus[0][i] += 2*PI;
         }
       }
       else                                // If SW1 is not pressed

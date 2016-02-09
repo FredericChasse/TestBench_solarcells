@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?> 
 <project>                                  
-  <executable name="dist/default/production/BenchtestSolarCells.X.production.elf">                 
+  <executable name="dist/default/debug/BenchtestSolarCells.X.debug.elf">                 
     <memory name="program">                 
       <units>bytes</units>                 
       <length>531968</length>                 
-      <used>108256</used>                     
-      <free>423712</free>                     
+      <used>108412</used>                     
+      <free>423556</free>                     
     </memory>                              
     <memory name="data">              
       <units>bytes</units>                 
-      <length>131072</length>                 
-      <used>73044</used>                     
-      <free>58028</free>                     
+      <length>131584</length>                 
+      <used>73688</used>                     
+      <free>57896</free>                     
     </memory>                              
   </executable>                            
 </project>                                 

@@ -84,9 +84,9 @@ void StartInterrupts  (void);
 #define U_MATLAB      UART6
 #define U_DBG         UART3
 
-#define SW1           Port.E.ReadBits(BIT_5)
-#define SW2           Port.E.ReadBits(BIT_6)
-#define SW3           Port.E.ReadBits(BIT_7)
+#define SW1           PORTEbits.RE5
+#define SW2           PORTEbits.RE6
+#define SW3           PORTEbits.RE7
 
 #define PI            3.14159265359f
 
