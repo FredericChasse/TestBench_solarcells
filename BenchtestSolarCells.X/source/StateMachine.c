@@ -26,7 +26,8 @@ extern volatile BOOL oAdcReady;
 
 BOOL oSendData = 0;
 
-UINT32 cellVoltage[16] = {0};
+UINT32 cellVoltageRaw [16] = {0};
+float  cellVoltageReal[16] = {0};
 
 sUartFifoBuffer_t matlabData = 
 {
@@ -219,6 +220,8 @@ void StateInit(void)
 //===============================================================
 void StateAcq(void)
 {
+  UINT8 i = 0;
+  UINT8 floatToByte[4] = {0};
   //==================================================================
   // VARIABLE DECLARATIONS
   //==================================================================
@@ -230,8 +233,17 @@ void StateAcq(void)
   if (oAdcReady)
   {
     oAdcReady = 0;
-    memcpy(cellVoltage, (void *) &Adc.Var.adcReadValues[0], sizeof(UINT32) * 16);
-    FifoWrite(&matlabData, &cellVoltage[12]);
+    memcpy(cellVoltageRaw, (void *) &Adc.Var.adcReadValues[0], sizeof(UINT32) * 16);
+    
+    cellVoltageReal[12] = (float) cellVoltageRaw[12] * VREF / 255.0f + 0.5f;
+    
+    memcpy(&floatToByte, &cellVoltageReal[12], 4);
+    
+    FifoWrite(&matlabData, &floatToByte[0]);
+    FifoWrite(&matlabData, &floatToByte[1]);
+    FifoWrite(&matlabData, &floatToByte[2]);
+    FifoWrite(&matlabData, &floatToByte[3]);
+    
     if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
     {
       oSendData = 1;
@@ -286,7 +298,21 @@ void StateAcq(void)
 void StateSendData(void)
 {
   oSendData = 0;
-  Uart.PutTxFifoBuffer(U_MATLAB, &matlabData);
+  sUartLineBuffer_t buffer = 
+  { 
+     .buffer = {0} 
+    ,.length =  0 
+  };
+  
+  UINT32 i = 0;
+  
+  for (i = 0; i < MATLAB_PACKET_SIZE; i++)
+  {
+    FifoRead(&matlabData, &buffer.buffer[i]);
+    buffer.length++;
+  }
+  
+  Uart.PutTxFifoBuffer(U_MATLAB, &buffer);
 }
 
 

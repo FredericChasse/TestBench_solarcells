@@ -83,7 +83,7 @@ void StateScheduler (void);   // State Scheduler. Decides which state is next
 //=========================================
 // UART packet size in bytes for MATLAB
 //=========================================
-#define MATLAB_PACKET_SIZE  32
+#define MATLAB_PACKET_SIZE  128             // 32 floats = 128 bytes
 //=========================================
 
 

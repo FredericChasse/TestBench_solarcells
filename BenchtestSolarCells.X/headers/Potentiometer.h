@@ -86,6 +86,8 @@ inline INT8 SetPot (UINT8 numPot, UINT8 index, UINT8 value);
 #define MAX_POT_VALUE   1253
 #define WIPER_VALUE     53
 
+#define VREF            2.448f
+
 #define CS0             LATDbits.LATD4
 #define CS1             LATDbits.LATD5
 #define CS2             LATDbits.LATD6

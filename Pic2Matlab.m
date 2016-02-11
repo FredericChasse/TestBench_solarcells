@@ -12,7 +12,7 @@ else
     port = port(1)
 end
 
-port.BytesAvailableFcnCount = 30*4; % 30 floats to receive = 120 bytes
+port.BytesAvailableFcnCount = 32*4; % 32 floats to receive = 128 bytes
 port.BytesAvailableFcnMode = 'byte';
 port.BytesAvailableFcn = {@myCallback};
 
