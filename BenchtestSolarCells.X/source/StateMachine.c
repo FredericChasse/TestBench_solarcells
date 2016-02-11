@@ -24,6 +24,22 @@
 
 extern volatile BOOL oAdcReady;
 
+BOOL oSendData = 0;
+
+UINT32 cellVoltage[16] = {0};
+
+sUartFifoBuffer_t matlabData = 
+{
+   .bufEmpty   = 1
+  ,.bufFull    = 0
+  ,.inIdx      = 0
+  ,.outIdx     = 0
+  ,.lineBuffer = {0}
+  ,.maxBufSize = UART_LINE_BUFFER_LENGTH
+};
+
+UINT8 potValue = 0;
+
 //==============================================================================
 //	STATES OF STATE MACHINE
 //==============================================================================
@@ -168,12 +184,12 @@ void StateInit(void)
   INTDisableInterrupts();   // Disable all interrupts of the system.
 
   INIT_PORTS;
-  INIT_SPI;
 //  INIT_TIMER;
 //  INIT_ADC;
   INIT_UART;
   INIT_SKADI;
   INIT_I2C;
+  INIT_SPI;
 //  INIT_WDT;
   
   START_INTERRUPTS;
@@ -183,34 +199,53 @@ void StateInit(void)
 //  InitPot(1);
 //  InitPot(2);
   InitPot(3);
+  potValue = 0;
+  SetPot(3, 0, potValue);
+  SetPot(3, 1, potValue);
+  SetPot(3, 2, potValue);
+  SetPot(3, 3, potValue);
 //  
   // Init LED driver PCA9685
   InitLedDriver();
 //  ShutdownLedDriver();
+  SetLedDutyCycle(12, 200);
 
 }
 
 
 //===============================================================
-// Name     : State1
-// Purpose  : TBD.
+// Name     : StateAcq
+// Purpose  : Check for received data
 //===============================================================
 void StateAcq(void)
 {
   //==================================================================
   // VARIABLE DECLARATIONS
   //==================================================================
-  UINT32 cellVoltage[8] = {0};
 
   //==================================================================
   // ADC READ
-  // Read values from ADC
+  // Check cells voltage
   //==================================================================
-//  if (oAdcReady)
-//  {
-//    oAdcReady = 0;
-//    memcpy(cellVoltage, (void *) &Adc.Var.adcReadValues[8], sizeof(UINT32) * 8);
-//  }
+  if (oAdcReady)
+  {
+    oAdcReady = 0;
+    memcpy(cellVoltage, (void *) &Adc.Var.adcReadValues[0], sizeof(UINT32) * 16);
+    FifoWrite(&matlabData, &cellVoltage[12]);
+    if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
+    {
+      oSendData = 1;
+    }
+    
+    if (potValue == 255)
+    {
+      LED1_ON;
+      LED2_ON;
+      while(1);
+    }
+    potValue++;
+    SetPot(3, 0, potValue);
+  }
   
   //==================================================================
   // Check for skadi messages or button changes
@@ -223,29 +258,13 @@ void StateAcq(void)
   // SECOND PART OF STATE
   // Developper should add a small description of expected behavior
   //==================================================================
-//  sUartLineBuffer_t   uart3Data =  {
+//  sUartLineBuffer_t  matlabData = {
 //                                    .buffer = {0}
 //                                   ,.length =  0
 //                                  }
-//                    ,uart6Data =  {
-//                                    .buffer = {0}
-//                                   ,.length =  0
-//                                  }
-//                    ;
+//                                  ;
 //  
 //  INT32 err = 0;
-  
-//  Skadi.GetCmdMsg();    // Use if you do not use UART interrupts
-  
-//  if (Uart.Var.oIsRxDataAvailable[UART3])                 // Check if RX interrupt occured
-//  {
-//    err = Uart.GetRxFifoBuffer(UART3, &uart3Data, FALSE); // put received data in uart3Data
-//    if (err >= 0)                                         // If no error occured
-//    {
-//      /* Do something */
-//      Uart.PutTxFifoBuffer(UART3, &uart3Data);            // Put data received in TX FIFO buffer
-//    }
-//  }
 //  
 //  if (Uart.Var.oIsRxDataAvailable[UART6])                 // Check if RX interrupt occured
 //  {
@@ -266,28 +285,33 @@ void StateAcq(void)
 //===============================================================
 void StateSendData(void)
 {
+  oSendData = 0;
+  Uart.PutTxFifoBuffer(U_MATLAB, &matlabData);
+}
+
+
+//===============================================================
+// Name     : StateCompute
+// Purpose  : Compute algorithm.
+//===============================================================
+void StateCompute(void)
+{
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // VARIABLE DECLARATIONS
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
+  
+  
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // FIRST PART OF STATE
   // Developper should add a small description of expected behavior
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
+  
+  
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // SECOND PART OF STATE
   // Developper should add a small description of expected behavior
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
+  
 
 }
 
@@ -314,38 +338,6 @@ void StateError(void)
    * DEVELOPPER CODE HERE
    */
 
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // SECOND PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
-}
-
-
-//===============================================================
-// Name     : StateCompute
-// Purpose  : Compute algorithm.
-//===============================================================
-void StateCompute(void)
-{
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // VARIABLE DECLARATIONS
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // FIRST PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-  
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // SECOND PART OF STATE
   // Developper should add a small description of expected behavior

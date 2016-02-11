@@ -54,40 +54,43 @@ void StateScheduler (void);   // State Scheduler. Decides which state is next
 // conditions tested in the defines should be changed
 // to proper tests
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define INIT_2_ACQ     1                // StateInit to StateAcq
-#define INIT_2_ERROR   0                // StateInit to StateError
-#define INIT_2_COMP   0                // StateInit to StateCompute
-#define INIT_2_SEND_DATA    0                // StateInit to StateSendData
+#define INIT_2_ACQ                1               // StateInit to StateAcq
+#define INIT_2_ERROR              0               // StateInit to StateError
+#define INIT_2_COMP               0               // StateInit to StateCompute
+#define INIT_2_SEND_DATA          0               // StateInit to StateSendData
 
-#define ACQ_2_SEND_DATA     0                // StateAcq to StateSendData
-#define ACQ_2_ACQ      1                // StateAcq to StateAcq
-#define ACQ_2_COMP      0                // StateAcq to StateCompute
-#define ACQ_2_ERROR   0   // StateAcq to StateError
+#define ACQ_2_SEND_DATA           oSendData       // StateAcq to StateSendData
+#define ACQ_2_ACQ                !oSendData       // StateAcq to StateAcq
+#define ACQ_2_COMP                0               // StateAcq to StateCompute
+#define ACQ_2_ERROR               0               // StateAcq to StateError
 
-#define SEND_DATA_2_ACQ      breakFlag                // StateSendData to StateAcq
-#define SEND_DATA_2_SEND_DATA     !breakFlag                // StateSendData to StateSendData
-#define SEND_DATA_2_ERROR    breakFlag && errorFlag   // StateSendData to StateError
-#define SEND_DATA_2_COMP    breakFlag && errorFlag   // StateSendData to StateCompute
+#define SEND_DATA_2_ACQ           1              // StateSendData to StateAcq
+#define SEND_DATA_2_SEND_DATA     0                // StateSendData to StateSendData
+#define SEND_DATA_2_ERROR         0   // StateSendData to StateError
+#define SEND_DATA_2_COMP          0   // StateSendData to StateCompute
 
-#define ERROR_2_ACQ   !errorFlag && breakFlag   // StateError to StateAcq
-#define ERROR_2_SEND_DATA   !errorFlag && !breakFlag  // StateError to StateSendData
-#define ERROR_2_ERROR  errorFlag                // StateError to StateError
-#define ERROR_2_COMP  errorFlag                // StateError to StateCompute
+#define ERROR_2_ACQ               0   // StateError to StateAcq
+#define ERROR_2_SEND_DATA         0  // StateError to StateSendData
+#define ERROR_2_ERROR             0                // StateError to StateError
+#define ERROR_2_COMP              0                // StateError to StateCompute
 
-#define COMP_2_ACQ  errorFlag         // StateCompute to StateAcq
-#define COMP_2_SEND_DATA  errorFlag   // StateCompute to StateSendData
-#define COMP_2_COMP  errorFlag    // StateCompute to StateCompute
-#define COMP_2_ERROR  errorFlag   // StateCompute to StateError
+#define COMP_2_ACQ                0         // StateCompute to StateAcq
+#define COMP_2_SEND_DATA          0   // StateCompute to StateSendData
+#define COMP_2_COMP               0    // StateCompute to StateCompute
+#define COMP_2_ERROR              0   // StateCompute to StateError
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+//=========================================
+// UART packet size in bytes for MATLAB
+//=========================================
+#define MATLAB_PACKET_SIZE  32
+//=========================================
 
 
 //==============================================================================
 // Variable declarations
 //==============================================================================
 void (*pState)(void);       // State pointer, used to navigate between states
-volatile  INT8  breakFlag   // Flag indicating if the emergency break has been pressed
-               ,errorFlag   // Flag indicating an error
-               ;
 
 #endif	/* __STATE_MACHINE_H__ */
 

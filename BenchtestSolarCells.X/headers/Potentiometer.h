@@ -38,6 +38,14 @@
 inline INT8 ShutdownPot(UINT8 numPot);   // Shutdown a potentiometer
 
 /**************************************************************
+ * Function name  : TurnOnPot
+ * Purpose        : Turn on a potentiometer.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3).
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
+inline INT8 TurnOnPot(UINT8 numPot);
+
+/**************************************************************
  * Function name  : ResetPot
  * Purpose        : Reset a pot at its mid-value.
  * Arguments      : UINT8 numPot : the number of the pot (0-3).
@@ -55,11 +63,21 @@ inline INT16 ComputePotValue(UINT32 desiredValue);
 
 /**************************************************************
  * Function name  : InitPot
- * Purpose        : Initialize a potentiometer.
+ * Purpose        : Turn on a potentiometer and put it at midvalue.
  * Arguments      : UINT8 numPot : the number of the pot (0-3).
  * Returns        : 0 on success, -1 on failure.
  *************************************************************/
 inline INT8 InitPot (UINT8 numPot);
+
+/**************************************************************
+ * Function name  : SetPot
+ * Purpose        : Initialize a potentiometer.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3)
+ *                  UINT8 index : pot index (0 - 3)
+ *                  UINT8 value : pot increment (0 - 255)
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
+inline INT8 SetPot (UINT8 numPot, UINT8 index, UINT8 value);
 
 
 //==============================================================================

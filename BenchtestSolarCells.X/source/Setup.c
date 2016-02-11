@@ -64,31 +64,31 @@ void InitTimer(void)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //	Open timers
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  timerCounterValue = Timer.Open(TIMER_1, 500, SCALE_MS);   // Open Timer 1 with a period of 500 ms
+//  timerCounterValue = Timer.Open(TIMER_1, 500, SCALE_MS);   // Open Timer 1 with a period of 500 ms
+//  if (timerCounterValue < 0)
+//  {
+//    LED1_ON;
+//  }
+//  timerCounterValue = Timer.Open(TIMER_2, 500, SCALE_US);   // Open Timer 2 with a period of 500 us
+//  if (timerCounterValue < 0)
+//  {
+//    LED1_ON;
+//  }
+  timerCounterValue = Timer.Open(TIMER_3, 50, SCALE_MS);   // Timer used for ADC
   if (timerCounterValue < 0)
   {
     LED1_ON;
   }
-  timerCounterValue = Timer.Open(TIMER_2, 500, SCALE_US);   // Open Timer 2 with a period of 500 us
-  if (timerCounterValue < 0)
-  {
-    LED1_ON;
-  }
-  timerCounterValue = Timer.Open(TIMER_3, 500, SCALE_MS);   // Timer used for ADC
-  if (timerCounterValue < 0)
-  {
-    LED1_ON;
-  }
-  timerCounterValue = Timer.Open(TIMER_4, 500, SCALE_MS);   // Open Timer 4 with a period of 500 ms
-  if (timerCounterValue < 0)
-  {
-    LED1_ON;
-  }
-  timerCounterValue = Timer.Open(TIMER_5, 500, SCALE_US);   // Open Timer 5 with a period of 500 us
-  if (timerCounterValue < 0)
-  {
-    LED1_ON;
-  }
+//  timerCounterValue = Timer.Open(TIMER_4, 500, SCALE_MS);   // Open Timer 4 with a period of 500 ms
+//  if (timerCounterValue < 0)
+//  {
+//    LED1_ON;
+//  }
+//  timerCounterValue = Timer.Open(TIMER_5, 500, SCALE_US);   // Open Timer 5 with a period of 500 us
+//  if (timerCounterValue < 0)
+//  {
+//    LED1_ON;
+//  }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //	Configure timer interrupts
@@ -166,7 +166,7 @@ void InitPorts(void)
                     | BIT_6  | BIT_7  | BIT_8  | BIT_9
                     | BIT_12 | BIT_13 | BIT_14 | BIT_15 );
 
-  Port.B.SetPinsAnalogIn(0xFFFF);   // ADC0-15, RB0 = Vref+
+//  Port.B.SetPinsAnalogIn(0xFFFF);   // ADC0-15, RB0 = Vref+
   
   Port.C.CloseBits        ( BIT_12  // OSC_IN
                           | BIT_13  // GPIO0
@@ -309,20 +309,17 @@ void InitAdc(void)
 
   // Hardware config.
   //================================================
-  UINT32 configHardware = ADC_VREF_EXT_AVSS      // Vref+ external and Vref- is AVss
-                        | ADC_SAMPLES_PER_INT_15;  // 15 samples/interrupt (we check 16 channels)
+  UINT32 configHardware = ADC_VREF_EXT_AVSS         // Vref+ external and Vref- is AVss
+//                        | ADC_SAMPLES_PER_INT_15;  // 15 samples/interrupt (we check 16 channels)
+                        | ADC_SAMPLES_PER_INT_1;    // 1 sample/interrupt
   //================================================
 
   // Port config.
   //================================================
-  UINT32 configPort =   ENABLE_AN8_ANA
-                      | ENABLE_AN9_ANA
-                      | ENABLE_AN10_ANA
-                      | ENABLE_AN11_ANA
-                      | ENABLE_AN12_ANA
-                      | ENABLE_AN13_ANA
-                      | ENABLE_AN14_ANA
-                      | ENABLE_AN15_ANA
+  UINT32 configPort =   ENABLE_AN12_ANA
+//                      | ENABLE_AN13_ANA
+//                      | ENABLE_AN14_ANA
+//                      | ENABLE_AN15_ANA
                       ; // Enable AN1-AN15 in analog mode
   
   UINT32 configScan =   SKIP_SCAN_AN0  // Skip AN0 as it's vref+
@@ -333,6 +330,13 @@ void InitAdc(void)
                       | SKIP_SCAN_AN5
                       | SKIP_SCAN_AN6
                       | SKIP_SCAN_AN7
+                      | SKIP_SCAN_AN8
+                      | SKIP_SCAN_AN9
+                      | SKIP_SCAN_AN10
+                      | SKIP_SCAN_AN11
+                      | SKIP_SCAN_AN13
+                      | SKIP_SCAN_AN14
+                      | SKIP_SCAN_AN15
                       ;
   //================================================
 

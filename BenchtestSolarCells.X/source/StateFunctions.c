@@ -154,3 +154,42 @@ void AssessButtons (void)
   }
   // </editor-fold>
 }
+
+
+//==============================================================================
+// MATLAB FIFOs functions
+//==============================================================================
+inline INT8 FifoWrite(sUartFifoBuffer_t *fifo, UINT8 *data)
+{
+  if (fifo->bufFull)
+  {
+    return -1;
+  }
+  fifo->bufEmpty = 0;
+  fifo->lineBuffer.buffer[fifo->inIdx] = *data;
+  fifo->inIdx = (fifo->inIdx + 1) % fifo->maxBufSize;
+  if (fifo->inIdx == fifo->outIdx)
+  {
+    fifo->bufFull = 1;
+  }
+  fifo->lineBuffer.length++;
+  return 0;
+}
+
+
+inline INT8 FifoRead (sUartFifoBuffer_t *fifo, UINT8 *data)
+{
+  if (fifo->bufEmpty)
+  {
+    return -1;
+  }
+  fifo->bufFull = 0;
+  *data = fifo->lineBuffer.buffer[fifo->outIdx];
+  fifo->outIdx = (fifo->outIdx + 1) % fifo->maxBufSize;
+  if (fifo->outIdx == fifo->inIdx)
+  {
+    fifo->bufEmpty = 1;
+  }
+  fifo->lineBuffer.length--;
+  return 0;
+}
