@@ -168,7 +168,7 @@ void StateInit(void)
   INTDisableInterrupts();   // Disable all interrupts of the system.
 
   INIT_PORTS;
-//  INIT_SPI;
+  INIT_SPI;
 //  INIT_TIMER;
 //  INIT_ADC;
   INIT_UART;
@@ -182,11 +182,11 @@ void StateInit(void)
 //  InitPot(0);
 //  InitPot(1);
 //  InitPot(2);
-//  InitPot(3);
+  InitPot(3);
 //  
   // Init LED driver PCA9685
   InitLedDriver();
-  ShutdownLedDriver();
+//  ShutdownLedDriver();
 
 }
 
@@ -208,8 +208,8 @@ void StateAcq(void)
   //==================================================================
 //  if (oAdcReady)
 //  {
-//    memcpy(cellVoltage, (void *) &Adc.Var.adcReadValues[8], sizeof(UINT32) * 8);
 //    oAdcReady = 0;
+//    memcpy(cellVoltage, (void *) &Adc.Var.adcReadValues[8], sizeof(UINT32) * 8);
 //  }
   
   //==================================================================

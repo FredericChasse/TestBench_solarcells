@@ -67,27 +67,27 @@ void InitTimer(void)
   timerCounterValue = Timer.Open(TIMER_1, 500, SCALE_MS);   // Open Timer 1 with a period of 500 ms
   if (timerCounterValue < 0)
   {
-    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+    LED1_ON;
   }
   timerCounterValue = Timer.Open(TIMER_2, 500, SCALE_US);   // Open Timer 2 with a period of 500 us
   if (timerCounterValue < 0)
   {
-    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+    LED1_ON;
   }
-  timerCounterValue = Timer.Open(TIMER_3, 500, SCALE_MS);   // Open Timer 3 with a period of 500 ms
+  timerCounterValue = Timer.Open(TIMER_3, 500, SCALE_MS);   // Timer used for ADC
   if (timerCounterValue < 0)
   {
-    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+    LED1_ON;
   }
   timerCounterValue = Timer.Open(TIMER_4, 500, SCALE_MS);   // Open Timer 4 with a period of 500 ms
   if (timerCounterValue < 0)
   {
-    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+    LED1_ON;
   }
   timerCounterValue = Timer.Open(TIMER_5, 500, SCALE_US);   // Open Timer 5 with a period of 500 us
   if (timerCounterValue < 0)
   {
-    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+    LED1_ON;
   }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -109,14 +109,16 @@ void InitSpi(void)
 {
   INT8 err = 0;
   SpiOpenFlags_t oMasterFlags =   SPI_MASTER_MODE
-                                | SPI_MASTER_SS
+//                                | SPI_MASTER_SS
                                 | SPI_16_BITS_CHAR
                                 | SPI_ENHANCED_BUFFER_MODE
-                                | SPI_TX_EVENT_BUFFER_EMPTY
+                                | SPI_TX_EVENT_BUFFER_SR_EMPTY
                                 | SPI_RX_EVENT_BUFFER_NOT_EMPTY
-                ;
+//                                | SPI_SAMPLE_END_CLK
+                                | SPI_DATA_ON_CLK_FEDGE
+                                ;
 
-  err = Spi.Open(SPI3, oMasterFlags, 10e6);   // Open the SPI3 as a master at a bitrate of 10 MHz
+  err = Spi.Open(SPI3, oMasterFlags, 5e6);   // Open the SPI3 as a master at a bitrate of 10 MHz
   if (err < 0)                // Check for errors
   {
     LED1_ON;    // Turn on the LED_DEBUG1
@@ -215,17 +217,17 @@ void InitPorts(void)
                           | BIT_3   // No connect (previously LED_OEn)
                           );
   
-  Port.D.SetBits          ( BIT_0   // LED Driver disabled
-                          | BIT_8   // RST_POT0n
-                          | BIT_9   // RST_POT1n
-                          | BIT_10  // RST_POT2n
-                          | BIT_11  // RST_POT3n
+  Port.D.ClearBits        ( BIT_0   // LED Driver disabled
+                          | BIT_8   // SHD_POT0n
+                          | BIT_9   // SHD_POT1n
+                          | BIT_10  // SHD_POT2n
+                          | BIT_11  // SHD_POT3n
                           );
   
-  Port.E.ClearBits        ( BIT_0 // SHD_POT0n
-                          | BIT_1 // SHD_POT1n
-                          | BIT_2 // SHD_POT2n
-                          | BIT_3 // SHD_POT3n
+  Port.E.SetBits          ( BIT_0   // RST_POT0n
+                          | BIT_1   // RST_POT1n
+                          | BIT_2   // RST_POT2n
+                          | BIT_3   // RST_POT3n
                           );
   
   LED1_OFF;

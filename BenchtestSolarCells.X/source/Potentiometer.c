@@ -97,35 +97,55 @@ inline INT16 ComputePotValue(UINT32 desiredValue)
  *************************************************************/
 inline INT8 InitPot (UINT8 numPot)
 {
+  UINT32 i = 0;
   if ( (numPot < 5) && (numPot >= 0) )
   {
-    while(Spi.IsSpiBusy(SPI3));
-    Port.D.ClearBits(1 << (numPot + 4));
-    Spi.SendCharacter(SPI3, 0);
-    Spi.SendCharacter(SPI3, 122); // MidValue
-    while(Spi.IsSpiBusy(SPI3));
-    Port.D.SetBits(1 << (numPot + 4));
+    Port.E.SetBits(BIT_3);
+    Port.D.SetBits(BIT_11);
     
     while(Spi.IsSpiBusy(SPI3));
     Port.D.ClearBits(1 << (numPot + 4));
-    Spi.SendCharacter(SPI3, 1);
-    Spi.SendCharacter(SPI3, 122); // MidValue
+//    Port.D.ClearBits(BIT_7);
+//    Spi.SendCharacter(SPI3, 0x007F);  // MidValue
+    Spi.SendCharacter(SPI3, 0x0003);  // 150 ohms
+//    for (i = 0; i < 10000; i++);
     while(Spi.IsSpiBusy(SPI3));
     Port.D.SetBits(1 << (numPot + 4));
+//    Port.D.SetBits(BIT_7);
+//    for (i = 0; i < 10000; i++);
     
     while(Spi.IsSpiBusy(SPI3));
     Port.D.ClearBits(1 << (numPot + 4));
-    Spi.SendCharacter(SPI3, 2);
-    Spi.SendCharacter(SPI3, 122); // MidValue
+//    Port.D.ClearBits(BIT_7);
+//    Spi.SendCharacter(SPI3, 0x017F);  // MidValue
+    Spi.SendCharacter(SPI3, 0x0103);  // 150 ohms
+//    for (i = 0; i < 10000; i++);
     while(Spi.IsSpiBusy(SPI3));
     Port.D.SetBits(1 << (numPot + 4));
+//    Port.D.SetBits(BIT_7);
+//    for (i = 0; i < 10000; i++);
     
     while(Spi.IsSpiBusy(SPI3));
     Port.D.ClearBits(1 << (numPot + 4));
-    Spi.SendCharacter(SPI3, 3);
-    Spi.SendCharacter(SPI3, 122); // MidValue
+//    Port.D.ClearBits(BIT_7);
+//    Spi.SendCharacter(SPI3, 0x027F);  // MidValue
+    Spi.SendCharacter(SPI3, 0x0203);  // 150 ohms
+//    for (i = 0; i < 10000; i++);
     while(Spi.IsSpiBusy(SPI3));
     Port.D.SetBits(1 << (numPot + 4));
+//    Port.D.SetBits(BIT_7);
+//    for (i = 0; i < 10000; i++);
+    
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.ClearBits(1 << (numPot + 4));
+//    Port.D.ClearBits(BIT_7);
+//    Spi.SendCharacter(SPI3, 0x037F);  // MidValue
+    Spi.SendCharacter(SPI3, 0x0303);  // 150 ohms
+//    for (i = 0; i < 10000; i++);
+    while(Spi.IsSpiBusy(SPI3));
+    Port.D.SetBits(1 << (numPot + 4));
+//    Port.D.SetBits(BIT_7);
+//    for (i = 0; i < 10000; i++);
     
     return 0;
   }
