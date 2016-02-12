@@ -73,20 +73,24 @@ inline INT8 InitPot (UINT8 numPot);
  * Function name  : SetPot
  * Purpose        : Initialize a potentiometer.
  * Arguments      : UINT8 numPot : the number of the pot (0-3)
- *                  UINT8 index : pot index (0 - 3)
+ *                  UINT16 index : pot index (0 - 3)
  *                  UINT8 value : pot increment (0 - 255)
  * Returns        : 0 on success, -1 on failure.
  *************************************************************/
-inline INT8 SetPot (UINT8 numPot, UINT8 index, UINT8 value);
+inline INT8 SetPot (UINT8 numPot, UINT16 index, UINT8 value);
 
 
 //==============================================================================
 // Macro definitions
 //==============================================================================
-#define MAX_POT_VALUE   1253
-#define WIPER_VALUE     53
+//#define MAX_POT_VALUE   9.55k +9.56k+9.53k+9.54k
+#define MAX_POT_VALUE   9545
+//#define WIPER_VALUE     (51.7 + 50.9 + 52.3 + 50.2) / 4
+#define WIPER_VALUE     51
+//#define MID_VALUE       4.79k+4.88k+4.79k+4.79k
+#define MID_VALUE       4800
 
-#define VREF            2.448f
+#define VREF            2.489f
 
 #define CS0             LATDbits.LATD4
 #define CS1             LATDbits.LATD5

@@ -72,6 +72,8 @@ void main(void)
   {
     Wdt.Disable();        // Disable WDT and
     Wdt.ClearEvent();     // the WDT event bit
+    
+    INIT_PORTS;           // Init all ports
     pState = &StateError; // Go to StateError
   }
   else
@@ -80,71 +82,10 @@ void main(void)
   }
 //=================================================================
   
-//  StateInit();
-//  Port.E.SetPinsDigitalOut(BIT_4);
-//  Port.E.ClearBits(BIT_4);
-//  INT16 data;
-//  UINT8 i = 0;
-//  INT8 err = 0;
-//  while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
-//  err = SetLedDutyCycle(11, 500);
-//  ShutdownLedDriver();
-  
-//  for (i = 0; i < 16; i++)
-//  {
-//    if (i != 7)
-//    {
-//      while(I2c.Var.oI2cWriteIsRunning[I2C5]);  // Wait for any I2C5 write sequence to end 
-//      err = SetLedDutyCycle(i, 750);
-//      if (err < 0)
-//      {
-//        LED1_ON;
-//      }
-//    }
-//  }
-  
-//  float sin[2][15] = { {0 , .4189 , .8378 , 1.2566 , 1.6755 , 2.0944 , 2.5133 , 2.9322 , 3.3510 , 3.7699 , 4.1888 , 4.6077 , 5.0265 , 5.4454 , 5.8643} ,
-//                       {0 , .4067 , .7431 , .9511  , .9945  , .8660  , .5878  , .2079  , -.2079 , -.5878 , -.8660 , -.9945 , -.9511 , -.7431 , -.4067} };
-//  
-//  sUartLineBuffer_t buffer = 
-//  { 
-//     .buffer = {0} 
-//    ,.length =  0 
-//  };
-//  
-//  memcpy(buffer.buffer, sin, 30*4);
-//  buffer.length = 30*4;
   
 	while(1)  //infinite loop
 	{
-//    Skadi.GetCmdMsgFifo();
-//    if (!SW1)
-//    {
-//      Uart.PutTxFifoBuffer(U_MATLAB, &buffer);
-//      while(!SW1);
-//      for (i = 0; i < 15; i++)
-//      {
-//        sin[0][i] += 2*PI;
-//        memcpy(buffer.buffer, sin, 120);
-//        buffer.length = 120;
-//      }
-//    }
-//    if ((data = Uart.GetDataByte(UART3)) > 0)
-//    {
-//      Uart.SendDataByte(UART3, (const UINT8) data);
-//    }
-//    if ((data = Uart.GetDataByte(UART6)) > 0)
-//    {
-//      Uart.SendDataByte(UART6, (const UINT8) data);
-//    }
-//    if (!Port.E.ReadBits(BIT_7))
-//    {
-//      Uart.SendDataByte(UART3, 'E');
-//      Uart.SendDataByte(UART6, 'E');
-//    }
-//    LED1_TOGGLE;
-//    LED2_TOGGLE;
-//    Timer.DelayMs(500);
+    
   // State machine entry & exit point
   //===========================================================
 		(*pState)();          // jump to next state
@@ -154,5 +95,6 @@ void main(void)
   //===========================================================
     StateScheduler();     // Decides which state will be next
 	//===========================================================
+    
 	}
 } //END MAIN CODE

@@ -185,13 +185,13 @@ void StateInit(void)
   INTDisableInterrupts();   // Disable all interrupts of the system.
 
   INIT_PORTS;
-//  INIT_TIMER;
-//  INIT_ADC;
+  INIT_TIMER;
+  INIT_ADC;
   INIT_UART;
   INIT_SKADI;
   INIT_I2C;
   INIT_SPI;
-//  INIT_WDT;
+  INIT_WDT;
   
   START_INTERRUPTS;
   
@@ -199,17 +199,26 @@ void StateInit(void)
 //  InitPot(0);
 //  InitPot(1);
 //  InitPot(2);
-  InitPot(3);
-  potValue = 0;
-  SetPot(3, 0, potValue);
-  SetPot(3, 1, potValue);
-  SetPot(3, 2, potValue);
-  SetPot(3, 3, potValue);
+//  InitPot(3);
+//  potValue = 5;
+//  SetPot(3, 0, potValue);
+//  SetPot(3, 1, potValue);
+//  SetPot(3, 2, potValue);
+//  SetPot(3, 3, potValue);
+  ShutdownPot(3);
 //  
   // Init LED driver PCA9685
   InitLedDriver();
 //  ShutdownLedDriver();
-  SetLedDutyCycle(12, 200);
+  SetLedDutyCycle(12, 400);
+  
+//  while(1)
+//  {
+//    Timer.DelayMs(500);
+//    Adc.ManualRead(12);
+//    Timer.DelayMs(500);
+//    cellVoltageRaw[12] = Adc.Var.adcReadValues[12];
+//  }
 
 }
 
@@ -234,11 +243,19 @@ void StateAcq(void)
   {
     oAdcReady = 0;
     memcpy(cellVoltageRaw, (void *) &Adc.Var.adcReadValues[0], sizeof(UINT32) * 16);
+//    cellVoltageRaw[12] = Adc.Var.adcReadValues[12];
     
-    cellVoltageReal[12] = (float) cellVoltageRaw[12] * VREF / 255.0f + 0.5f;
+//    cellVoltageReal[12] = (cellVoltageRaw[12] + 1) * VREF / 1024.0f;
+    for (i = 0; i < 16; i++)
+    {
+      cellVoltageReal[i] = (cellVoltageRaw[i] + 1) * VREF / 1024.0f;
+    }
     
-    memcpy(&floatToByte, &cellVoltageReal[12], 4);
+    memcpy(floatToByte, &cellVoltageReal[12], 4);
     
+//    FifoWrite(&matlabData, &floatToByte[3]);
+//    FifoWrite(&matlabData, &floatToByte[2]);
+//    FifoWrite(&matlabData, &floatToByte[1]);
     FifoWrite(&matlabData, &floatToByte[0]);
     FifoWrite(&matlabData, &floatToByte[1]);
     FifoWrite(&matlabData, &floatToByte[2]);
@@ -255,8 +272,11 @@ void StateAcq(void)
       LED2_ON;
       while(1);
     }
-    potValue++;
-    SetPot(3, 0, potValue);
+    else
+    {
+//      potValue++;
+//      SetPot(3, 0, potValue);
+    }
   }
   
   //==================================================================
@@ -325,20 +345,6 @@ void StateCompute(void)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // VARIABLE DECLARATIONS
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // FIRST PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // SECOND PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-
 }
 
 
@@ -349,27 +355,14 @@ void StateCompute(void)
 //===============================================================
 void StateError(void)
 {
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // VARIABLE DECLARATIONS
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // FIRST PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // SECOND PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
+  LED1_ON;
+  LED2_OFF;
+  
+  while(1)
+  {
+    LED1_TOGGLE;
+    LED2_TOGGLE;
+    
+    Timer.DelayMs(500);
+  }
 }

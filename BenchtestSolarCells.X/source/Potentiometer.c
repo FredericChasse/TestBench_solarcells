@@ -108,7 +108,7 @@ inline INT16 ComputePotValue(UINT32 desiredValue)
  *                  UINT8 value : pot increment (0 - 255)
  * Returns        : 0 on success, -1 on failure.
  *************************************************************/
-inline INT8 SetPot (UINT8 numPot, UINT8 index, UINT8 value)
+inline INT8 SetPot (UINT8 numPot, UINT16 index, UINT8 value)
 {
   if (numPot >= 4)
   {
@@ -121,7 +121,7 @@ inline INT8 SetPot (UINT8 numPot, UINT8 index, UINT8 value)
   
   while(Spi.IsSpiBusy(SPI3));
   Port.D.ClearBits(1 << (numPot + 4));
-  Spi.SendCharacter( SPI3, ( (index << 9) | value ) );
+  Spi.SendCharacter( SPI3, ( (index << 8) | value ) );
   while(Spi.IsSpiBusy(SPI3));
   Port.D.SetBits(1 << (numPot + 4));
 

@@ -74,7 +74,7 @@ void InitTimer(void)
 //  {
 //    LED1_ON;
 //  }
-  timerCounterValue = Timer.Open(TIMER_3, 50, SCALE_MS);   // Timer used for ADC
+  timerCounterValue = Timer.Open(TIMER_3, 500, SCALE_MS);   // Timer used for ADC
   if (timerCounterValue < 0)
   {
     LED1_ON;
@@ -93,11 +93,16 @@ void InitTimer(void)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //	Configure timer interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Timer.ConfigInterrupt(TIMER_1, TIMER1_INTERRUPT_PRIORITY, TIMER1_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_1 to the values specified in Interrupt.h
-  Timer.ConfigInterrupt(TIMER_2, TIMER2_INTERRUPT_PRIORITY, TIMER2_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_2 to the values specified in Interrupt.h
-  Timer.ConfigInterrupt(TIMER_3, TIMER3_INTERRUPT_PRIORITY, TIMER3_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_3 to the values specified in Interrupt.h
-  Timer.ConfigInterrupt(TIMER_4, TIMER4_INTERRUPT_PRIORITY, TIMER4_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_4 to the values specified in Interrupt.h
-  Timer.ConfigInterrupt(TIMER_5, TIMER5_INTERRUPT_PRIORITY, TIMER5_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_5 to the values specified in Interrupt.h
+  INT8 err = 0;
+//  Timer.ConfigInterrupt(TIMER_1, TIMER1_INTERRUPT_PRIORITY, TIMER1_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_1 to the values specified in Interrupt.h
+//  Timer.ConfigInterrupt(TIMER_2, TIMER2_INTERRUPT_PRIORITY, TIMER2_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_2 to the values specified in Interrupt.h
+  err = Timer.ConfigInterrupt(TIMER_3, TIMER3_INTERRUPT_PRIORITY, TIMER3_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_3 to the values specified in Interrupt.h
+  if (err < 0)
+  {
+    LED1_ON;
+  }
+//  Timer.ConfigInterrupt(TIMER_4, TIMER4_INTERRUPT_PRIORITY, TIMER4_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_4 to the values specified in Interrupt.h
+//  Timer.ConfigInterrupt(TIMER_5, TIMER5_INTERRUPT_PRIORITY, TIMER5_INTERRUPT_SUBPRIORITY); // Sets the priority of the TIMER_5 to the values specified in Interrupt.h
 
 }
 
@@ -166,7 +171,13 @@ void InitPorts(void)
                     | BIT_6  | BIT_7  | BIT_8  | BIT_9
                     | BIT_12 | BIT_13 | BIT_14 | BIT_15 );
 
-//  Port.B.SetPinsAnalogIn(0xFFFF);   // ADC0-15, RB0 = Vref+
+  Port.B.SetPinsAnalogIn(0xFFFF);   // ADC0-15, RB0 = Vref+
+//  Port.B.SetPinsAnalogIn  ( BIT_0     // Vref+
+//                          | BIT_12    // POT12
+//                          | BIT_13    // POT12
+//                          | BIT_14    // POT12
+//                          | BIT_15    // POT12
+//                          );
   
   Port.C.CloseBits        ( BIT_12  // OSC_IN
                           | BIT_13  // GPIO0
@@ -283,7 +294,7 @@ void InitI2c(void)
   err = I2c.ConfigInterrupt(I2C5, I2C5_INTERRUPT_PRIORITY, I2C5_INTERRUPT_SUBPRIORITY);
   if (err < 0)
   {
-//    LED_ERROR_ON;
+    LED1_ON;
   }
 }
 
@@ -302,48 +313,63 @@ void InitWdt(void)
 //===========================
 void InitAdc(void)
 {
+  INT8 err;
   // Mode of operation.
   //================================================
   UINT32 samplingClk = ADC_CLK_TMR;     // Timer3 used for sampling
+//  UINT32 samplingClk = ADC_CLK_MANUAL;     // Timer3 used for sampling
   //================================================
 
   // Hardware config.
   //================================================
   UINT32 configHardware = ADC_VREF_EXT_AVSS         // Vref+ external and Vref- is AVss
-//                        | ADC_SAMPLES_PER_INT_15;  // 15 samples/interrupt (we check 16 channels)
-                        | ADC_SAMPLES_PER_INT_1;    // 1 sample/interrupt
+//                          ADC_VREF_AVDD_AVSS
+                        | ADC_SAMPLES_PER_INT_16;  // 15 samples/interrupt (we check 16 channels)
+//                        | ADC_SAMPLES_PER_INT_2;    // 1 sample/interrupt
+//                        | ADC_SAMPLES_PER_INT_1;    // 1 sample/interrupt
   //================================================
 
   // Port config.
   //================================================
-  UINT32 configPort =   ENABLE_AN12_ANA
+  UINT32 configPort =   ENABLE_ALL_ANA
+//                      | ENABLE_AN12_ANA
 //                      | ENABLE_AN13_ANA
 //                      | ENABLE_AN14_ANA
 //                      | ENABLE_AN15_ANA
                       ; // Enable AN1-AN15 in analog mode
   
-  UINT32 configScan =   SKIP_SCAN_AN0  // Skip AN0 as it's vref+
-                      | SKIP_SCAN_AN1
-                      | SKIP_SCAN_AN2
-                      | SKIP_SCAN_AN3
-                      | SKIP_SCAN_AN4
-                      | SKIP_SCAN_AN5
-                      | SKIP_SCAN_AN6
-                      | SKIP_SCAN_AN7
-                      | SKIP_SCAN_AN8
-                      | SKIP_SCAN_AN9
-                      | SKIP_SCAN_AN10
-                      | SKIP_SCAN_AN11
-                      | SKIP_SCAN_AN13
-                      | SKIP_SCAN_AN14
-                      | SKIP_SCAN_AN15
-                      ;
+//  UINT32 configScan =   //SKIP_SCAN_AN0  // Skip AN0 as it's vref+
+//                        SKIP_SCAN_AN1
+//                      | SKIP_SCAN_AN2
+//                      | SKIP_SCAN_AN3
+//                      | SKIP_SCAN_AN4
+//                      | SKIP_SCAN_AN5
+//                      | SKIP_SCAN_AN6
+//                      | SKIP_SCAN_AN7
+//                      | SKIP_SCAN_AN8
+//                      | SKIP_SCAN_AN9
+//                      | SKIP_SCAN_AN10
+//                      | SKIP_SCAN_AN11
+//                      | SKIP_SCAN_AN13
+//                      | SKIP_SCAN_AN14
+//                      | SKIP_SCAN_AN15
+//                      ;  
+  UINT32 configScan = 0;
+//  UINT32 configScan = SKIP_SCAN_ALL;
   //================================================
 
   // Open ADC with parameters above
-  Adc.Open(samplingClk, configHardware, configPort, configScan);
+  err = Adc.Open(samplingClk, configHardware, configPort, configScan);
+  if (err < 0)
+  {
+    LED1_ON;
+  }
 
-  Adc.ConfigInterrupt(ADC_INTERRUPT_PRIORITY, ADC_INTERRUPT_SUBPRIORITY);
+  err = Adc.ConfigInterrupt(ADC_INTERRUPT_PRIORITY, ADC_INTERRUPT_SUBPRIORITY);
+  if (err < 0)
+  {
+    LED1_ON;
+  }
 }
 
 //===========================
@@ -351,13 +377,18 @@ void InitAdc(void)
 //===========================
 void StartInterrupts(void)
 {
-
+  INT8 err;
+  
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable timer interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //  Timer.EnableInterrupt(TIMER_1);
 //  Timer.EnableInterrupt(TIMER_2);
-//  Timer.EnableInterrupt(TIMER_3);
+  err = Timer.EnableInterrupt(TIMER_3);
+  if (err < 0)
+  {
+    LED1_ON;
+  }
 //  Timer.EnableInterrupt(TIMER_4);
 //  Timer.EnableInterrupt(TIMER_5);
 
@@ -386,16 +417,32 @@ void StartInterrupts(void)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable ADC interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//  Adc.EnableInterrupts();   // Works only when not in manual mode
+  err = Adc.EnableInterrupts();   // Works only when not in manual mode
+  if (err < 0)
+  {
+    LED1_ON;
+  }
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable I2C interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-  I2c.EnableInterrupt (I2C5, I2C_MASTER_INTERRUPT);
-  I2c.DisableInterrupt(I2C5, I2C_SLAVE_INTERRUPT);
-  I2c.DisableInterrupt(I2C5, I2C_BUS_COLLISION_INTERRUPT);
+  err = I2c.EnableInterrupt (I2C5, I2C_MASTER_INTERRUPT);
+  if (err < 0)
+  {
+    LED1_ON;
+  }
+  err = I2c.DisableInterrupt(I2C5, I2C_SLAVE_INTERRUPT);
+  if (err < 0)
+  {
+    LED1_ON;
+  }
+  err = I2c.DisableInterrupt(I2C5, I2C_BUS_COLLISION_INTERRUPT);
+  if (err < 0)
+  {
+    LED1_ON;
+  }
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

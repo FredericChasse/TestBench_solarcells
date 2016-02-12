@@ -40,6 +40,12 @@ void StateError     (void);   // Error state. User should assess and correct err
 void StateScheduler (void);   // State Scheduler. Decides which state is next
                               // depending on current state and flags. Used as a function
 
+//==============================================================================
+// MATLAB FIFOs functions
+//==============================================================================
+inline INT8 FifoWrite(sUartFifoBuffer_t *fifo, UINT8 *data);
+inline INT8 FifoRead (sUartFifoBuffer_t *fifo, UINT8 *data);
+
 
 //==============================================================================
 // Macro definitions

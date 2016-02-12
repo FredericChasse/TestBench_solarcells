@@ -293,6 +293,7 @@ void __ISR(_ADC_VECTOR, ADC_INTERRUPT_PRIO) AdcInterruptHandler(void)
 {
   Adc.Read();               // Read the enabled channels and puts them in Adc.Var.adcReadValues[]
   oAdcReady = 1;
+  LED2_TOGGLE;
   INTClearFlag(INT_AD1);    // Clear the ADC conversion done interrupt Flag
 }
 //=============================================
