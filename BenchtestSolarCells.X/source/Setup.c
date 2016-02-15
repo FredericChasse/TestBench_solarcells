@@ -74,7 +74,7 @@ void InitTimer(void)
 //  {
 //    LED1_ON;
 //  }
-  timerCounterValue = Timer.Open(TIMER_3, 500, SCALE_MS);   // Timer used for ADC
+  timerCounterValue = Timer.Open(TIMER_3, 100, SCALE_MS);   // Timer used for ADC
   if (timerCounterValue < 0)
   {
     LED1_ON;
@@ -324,37 +324,37 @@ void InitAdc(void)
   //================================================
   UINT32 configHardware = ADC_VREF_EXT_AVSS         // Vref+ external and Vref- is AVss
 //                          ADC_VREF_AVDD_AVSS
-                        | ADC_SAMPLES_PER_INT_16;  // 15 samples/interrupt (we check 16 channels)
+//                        | ADC_SAMPLES_PER_INT_16;  // 15 samples/interrupt (we check 16 channels)
 //                        | ADC_SAMPLES_PER_INT_2;    // 1 sample/interrupt
-//                        | ADC_SAMPLES_PER_INT_1;    // 1 sample/interrupt
+                        | ADC_SAMPLES_PER_INT_1;    // 1 sample/interrupt
   //================================================
 
   // Port config.
   //================================================
-  UINT32 configPort =   ENABLE_ALL_ANA
-//                      | ENABLE_AN12_ANA
+  UINT32 configPort =   //ENABLE_ALL_ANA
+                       ENABLE_AN12_ANA
 //                      | ENABLE_AN13_ANA
 //                      | ENABLE_AN14_ANA
 //                      | ENABLE_AN15_ANA
                       ; // Enable AN1-AN15 in analog mode
   
-//  UINT32 configScan =   //SKIP_SCAN_AN0  // Skip AN0 as it's vref+
-//                        SKIP_SCAN_AN1
-//                      | SKIP_SCAN_AN2
-//                      | SKIP_SCAN_AN3
-//                      | SKIP_SCAN_AN4
-//                      | SKIP_SCAN_AN5
-//                      | SKIP_SCAN_AN6
-//                      | SKIP_SCAN_AN7
-//                      | SKIP_SCAN_AN8
-//                      | SKIP_SCAN_AN9
-//                      | SKIP_SCAN_AN10
-//                      | SKIP_SCAN_AN11
-//                      | SKIP_SCAN_AN13
-//                      | SKIP_SCAN_AN14
-//                      | SKIP_SCAN_AN15
-//                      ;  
-  UINT32 configScan = 0;
+  UINT32 configScan =   SKIP_SCAN_AN0  // Skip AN0 as it's vref+
+                      | SKIP_SCAN_AN1
+                      | SKIP_SCAN_AN2
+                      | SKIP_SCAN_AN3
+                      | SKIP_SCAN_AN4
+                      | SKIP_SCAN_AN5
+                      | SKIP_SCAN_AN6
+                      | SKIP_SCAN_AN7
+                      | SKIP_SCAN_AN8
+                      | SKIP_SCAN_AN9
+                      | SKIP_SCAN_AN10
+                      | SKIP_SCAN_AN11
+                      | SKIP_SCAN_AN13
+                      | SKIP_SCAN_AN14
+                      | SKIP_SCAN_AN15
+                      ;  
+//  UINT32 configScan = 0;
 //  UINT32 configScan = SKIP_SCAN_ALL;
   //================================================
 

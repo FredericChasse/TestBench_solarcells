@@ -22,9 +22,13 @@
 #include "..\headers\StateMachine.h"
 
 
-extern volatile BOOL oAdcReady;
+extern volatile BOOL   oAdcReady
+                      ,oTimer3Ready
+                      ;
 
 BOOL oSendData = 0;
+
+BOOL oMatlabReady = 0;
 
 UINT32 cellVoltageRaw [16] = {0};
 float  cellVoltageReal[16] = {0};
@@ -40,6 +44,18 @@ sUartFifoBuffer_t matlabData =
 };
 
 UINT8 potValue = 0;
+
+float potValues[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+
+extern sUartLineBuffer_t buffer;
+
+extern float sinus[2][15];
+//float sinus[2][15] = { {0 , .4189 , .8378 , 1.2566 , 1.6755 , 2.0944 , 2.5133 , 2.9322 , 3.3510 , 3.7699 , 4.1888 , 4.6077 , 5.0265 , 5.4454 , 5.8643} ,
+//                       {0 , .4067 , .7431 , .9511  , .9945  , .8660  , .5878  , .2079  , -.2079 , -.5878 , -.8660 , -.9945 , -.9511 , -.7431 , -.4067} };
+//float sinx[32] = {0, 0.19509, 0.38268, 0.55557, 0.70711, 0.83147, 0.92388, 0.98079, 1, 0.98079, 0.92388
+//                 ,0.83147, 0.70711, 0.55557, 0.38268, 0.19509, 0, -0.19509, -0.38268, -0.55557, -0.70711, -0.83147
+//                 ,-0.92388, -0.98079, -1, -0.98079, -0.92388, -0.83147, -0.70711, -0.55557, -0.38268, -0.19509
+//                 };
 
 //==============================================================================
 //	STATES OF STATE MACHINE
@@ -199,13 +215,14 @@ void StateInit(void)
 //  InitPot(0);
 //  InitPot(1);
 //  InitPot(2);
-//  InitPot(3);
+  InitPot(3);
+  potValue = 0;
 //  potValue = 5;
-//  SetPot(3, 0, potValue);
-//  SetPot(3, 1, potValue);
-//  SetPot(3, 2, potValue);
-//  SetPot(3, 3, potValue);
-  ShutdownPot(3);
+  SetPot(3, 0, potValue);
+  SetPot(3, 1, potValue);
+  SetPot(3, 2, potValue);
+  SetPot(3, 3, potValue);
+//  ShutdownPot(3);
 //  
   // Init LED driver PCA9685
   InitLedDriver();
@@ -229,53 +246,121 @@ void StateInit(void)
 //===============================================================
 void StateAcq(void)
 {
-  UINT8 i = 0;
+  static UINT8 i = 0;
+  static UINT8 k = 0;
+  UINT8 j = 0;
+  INT32 err = 0;
   UINT8 floatToByte[4] = {0};
+  float fPotValue = 0;
   //==================================================================
   // VARIABLE DECLARATIONS
   //==================================================================
+  
+//  if (oTimer3Ready)
+//  {
+//    oTimer3Ready = 0;
+//    
+//    if (oMatlabReady)
+//    {
+////      memcpy(buffer.buffer, sinus, 120);
+////      buffer.length = 120;
+////
+////      Uart.PutTxFifoBuffer(U_MATLAB, &buffer);
+////      for (i = 0; i < 15; i++)
+////      {
+////        sinus[0][i] += 2*PI;
+////      }
+//    
+//      memcpy(floatToByte, &sinus[k][i], 4);
+//      FifoWrite(&matlabData, &floatToByte[0]);
+//      FifoWrite(&matlabData, &floatToByte[1]);
+//      FifoWrite(&matlabData, &floatToByte[2]);
+//      FifoWrite(&matlabData, &floatToByte[3]);
+//      if (i < 14)
+//      {
+//        i++;
+//      }
+//      else
+//      {
+//        if (k < 1)
+//        {
+//          k++;
+//          i = 0;
+//        }
+//        else
+//        {
+//          for (j = 0; j < 15; j++)
+//          {
+//            sinus[0][j] += 15;
+////            sinus[0][j] += 2*PI;
+//          }
+//          i = 0;
+//          k = 0;
+//        }
+//      }
+//
+//      if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
+//      {
+////        buffer.length = 0;
+//        oSendData = 1;
+////        for (j = 0; j < MATLAB_PACKET_SIZE; j++)
+////        {
+////          FifoRead(&matlabData, &buffer.buffer[j]);
+////          buffer.length++;
+////        }
+////
+////        Uart.PutTxFifoBuffer(U_MATLAB, &buffer);
+//        i = 0;
+//        k = 0;
+//      }
+//    }
+//  }
 
   //==================================================================
   // ADC READ
   // Check cells voltage
   //==================================================================
-  if (oAdcReady)
+  if (oMatlabReady)
   {
-    oAdcReady = 0;
-    memcpy(cellVoltageRaw, (void *) &Adc.Var.adcReadValues[0], sizeof(UINT32) * 16);
-//    cellVoltageRaw[12] = Adc.Var.adcReadValues[12];
-    
-//    cellVoltageReal[12] = (cellVoltageRaw[12] + 1) * VREF / 1024.0f;
-    for (i = 0; i < 16; i++)
+    if (oAdcReady)
     {
-      cellVoltageReal[i] = (cellVoltageRaw[i] + 1) * VREF / 1024.0f;
-    }
-    
-    memcpy(floatToByte, &cellVoltageReal[12], 4);
-    
-//    FifoWrite(&matlabData, &floatToByte[3]);
-//    FifoWrite(&matlabData, &floatToByte[2]);
-//    FifoWrite(&matlabData, &floatToByte[1]);
-    FifoWrite(&matlabData, &floatToByte[0]);
-    FifoWrite(&matlabData, &floatToByte[1]);
-    FifoWrite(&matlabData, &floatToByte[2]);
-    FifoWrite(&matlabData, &floatToByte[3]);
-    
-    if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
-    {
-      oSendData = 1;
-    }
-    
-    if (potValue == 255)
-    {
-      LED1_ON;
-      LED2_ON;
-      while(1);
-    }
-    else
-    {
-//      potValue++;
-//      SetPot(3, 0, potValue);
+      oAdcReady = 0;
+      memcpy((void *) &cellVoltageRaw[0], (void *) &Adc.Var.adcReadValues[0], sizeof(UINT32) * 16);
+  //    cellVoltageRaw[12] = Adc.Var.adcReadValues[12];
+
+      cellVoltageReal[12] = (cellVoltageRaw[12] + 1) * VREF / 1024.0f;
+  //    for (i = 0; i < 16; i++)
+  //    {
+  //      cellVoltageReal[i] = (cellVoltageRaw[i] + 1) * VREF / 1024.0f;
+  //    }
+
+      
+      fPotValue = potValue;
+      memcpy(floatToByte, &fPotValue, 4);
+      
+      FifoWrite(&matlabData, &floatToByte[0]);
+      FifoWrite(&matlabData, &floatToByte[1]);
+      FifoWrite(&matlabData, &floatToByte[2]);
+      FifoWrite(&matlabData, &floatToByte[3]);
+      
+      memcpy(floatToByte, &cellVoltageReal[12], 4);
+
+      FifoWrite(&matlabData, &floatToByte[0]);
+      FifoWrite(&matlabData, &floatToByte[1]);
+      FifoWrite(&matlabData, &floatToByte[2]);
+      FifoWrite(&matlabData, &floatToByte[3]);
+      
+
+      if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
+      {
+        oSendData = 1;
+      }
+
+      if (potValue < 255)
+      {
+        potValue++;
+        SetPot(3, 0, potValue);
+      }
     }
   }
   
@@ -298,15 +383,22 @@ void StateAcq(void)
 //  
 //  INT32 err = 0;
 //  
-//  if (Uart.Var.oIsRxDataAvailable[UART6])                 // Check if RX interrupt occured
-//  {
-//    err = Uart.GetRxFifoBuffer(UART6, &uart6Data, FALSE); // put received data in uart6Data
-//    if (err >= 0)                                         // If no error occured
-//    {
-//      /* Do something */
-//      Uart.PutTxFifoBuffer(UART6, &uart6Data);            // Put data received in TX FIFO buffer
-//    }
-//  }
+  
+  if (Uart.Var.oIsRxDataAvailable[UART6])                 // Check if RX interrupt occured
+  {
+    err = Uart.GetRxFifoBuffer(UART6, &buffer, FALSE); // put received data in uart6Data
+    if (err >= 0)                                         // If no error occured
+    {
+      if (buffer.buffer[0] == 'g')
+      {
+        oMatlabReady = 1;
+      }
+      else if (buffer.buffer[0] == 's')
+      {
+        oMatlabReady = 0;
+      }
+    }
+  }
 
 }
 
@@ -318,7 +410,7 @@ void StateAcq(void)
 void StateSendData(void)
 {
   oSendData = 0;
-  sUartLineBuffer_t buffer = 
+  sUartLineBuffer_t localBuffer = 
   { 
      .buffer = {0} 
     ,.length =  0 
@@ -328,11 +420,18 @@ void StateSendData(void)
   
   for (i = 0; i < MATLAB_PACKET_SIZE; i++)
   {
-    FifoRead(&matlabData, &buffer.buffer[i]);
-    buffer.length++;
+    FifoRead(&matlabData, &localBuffer.buffer[i]);
+    localBuffer.length++;
   }
   
-  Uart.PutTxFifoBuffer(U_MATLAB, &buffer);
+  Uart.PutTxFifoBuffer(U_MATLAB, &localBuffer);
+  
+  if (potValue == 255)
+  {
+    LED1_ON;
+    LED2_ON;
+    while(1);
+  }
 }
 
 

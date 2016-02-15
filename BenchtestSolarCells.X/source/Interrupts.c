@@ -28,7 +28,9 @@
 #include "..\headers\Interrupts.h"
 #include "..\headers\Potentiometer.h"
 
-volatile BOOL oAdcReady = 0;
+volatile BOOL  oAdcReady    = 0
+              ,oTimer3Ready = 0
+              ;
 
 /*******************************************************************************
  ***********************                               *************************
@@ -71,6 +73,7 @@ void __ISR(_TIMER_2_VECTOR, T2_INTERRUPT_PRIORITY) Timer2InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_3_VECTOR, T3_INTERRUPT_PRIORITY) Timer3InterruptHandler(void)
 {
+  oTimer3Ready = 1;
 
   // Increment the number of overflows from this timer. Used primarily by Input Capture
   Timer.Var.nOverflows[2]++;
@@ -293,7 +296,7 @@ void __ISR(_ADC_VECTOR, ADC_INTERRUPT_PRIO) AdcInterruptHandler(void)
 {
   Adc.Read();               // Read the enabled channels and puts them in Adc.Var.adcReadValues[]
   oAdcReady = 1;
-  LED2_TOGGLE;
+//  LED2_TOGGLE;
   INTClearFlag(INT_AD1);    // Clear the ADC conversion done interrupt Flag
 }
 //=============================================

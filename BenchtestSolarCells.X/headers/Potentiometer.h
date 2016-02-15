@@ -91,6 +91,7 @@ inline INT8 SetPot (UINT8 numPot, UINT16 index, UINT8 value);
 #define MID_VALUE       4800
 
 #define VREF            2.489f
+//#define VREF            3.268f
 
 #define CS0             LATDbits.LATD4
 #define CS1             LATDbits.LATD5
