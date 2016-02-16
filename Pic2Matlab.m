@@ -1,6 +1,13 @@
-function Pic2Matlab()
-
 close all
+
+% Wait for the user to start the program
+reply = 'N';
+while reply == 'N'
+  reply = upper(input('Start? Y/N [N]:','s'));
+  if isempty(reply)
+    reply = 'Y'
+  end
+end
 
 % Create a serial port object.
 port = instrfind('Type', 'serial', 'Port', 'COM5', 'Tag', '');
@@ -12,7 +19,10 @@ else
     port = port(1)
 end
 
-port.BytesAvailableFcnCount = 32*4; % 32 floats to receive = 128 bytes
+n = 1;
+
+% port.BytesAvailableFcnCount = 32*4; % 30 floats to receive = 120 bytes
+port.BytesAvailableFcnCount = 32*4; % 30 floats to receive = 120 bytes
 port.BytesAvailableFcnMode = 'byte';
 port.BytesAvailableFcn = {@myCallback};
 
@@ -25,18 +35,22 @@ port.Terminator = '';
 % Connect to instrument object, port.
 fopen(port);
 
+fwrite(port, 'g')
+
 % Create figure for data
 fig1 = figure(1);
 hold on
 
 % Wait for the user to stop the program
-reply = 'Y'
-while reply == 'Y'
-  reply = input('Do you want more? Y/N [Y]:','s');
+reply = 'N';
+while reply == 'N'
+  reply = input('Stop? Y/N [Y]:','s');
   if isempty(reply)
-    reply = 'Y';
+    reply = 'Y'
   end
 end
+
+fwrite(port, 's')
 
 % Disconnect from instrument object, obj1.
 fclose(port);
@@ -62,21 +76,4 @@ figure(2)
 plot(x1, y1)
 legend(['Data'])
 
-end % main function
 
-
-function myCallback(obj,event)
-
-bytesAvailable = obj.BytesAvailable;
-rawData = fread(obj, bytesAvailable);
-valuesReceived = obj.ValuesReceived;
-
-% Convert UINT8 to float
-data = typecast(typecast(uint8(rawData), 'uint32'), 'single');
-nData = length(data);
-
-% Add data to figure
-fig1 = figure(1);
-plot(data(1:nData/2), data(nData/2 + 1:nData), 'b')
-
-end % myCallback

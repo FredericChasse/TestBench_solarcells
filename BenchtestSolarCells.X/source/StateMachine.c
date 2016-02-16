@@ -218,6 +218,7 @@ void StateInit(void)
   InitPot(3);
   potValue = 0;
 //  potValue = 5;
+  
   SetPot(3, 0, potValue);
   SetPot(3, 1, potValue);
   SetPot(3, 2, potValue);
@@ -227,15 +228,7 @@ void StateInit(void)
   // Init LED driver PCA9685
   InitLedDriver();
 //  ShutdownLedDriver();
-  SetLedDutyCycle(12, 400);
-  
-//  while(1)
-//  {
-//    Timer.DelayMs(500);
-//    Adc.ManualRead(12);
-//    Timer.DelayMs(500);
-//    cellVoltageRaw[12] = Adc.Var.adcReadValues[12];
-//  }
+  SetLedDutyCycle(12, 10);
 
 }
 

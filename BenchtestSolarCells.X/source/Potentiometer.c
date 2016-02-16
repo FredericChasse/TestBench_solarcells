@@ -42,7 +42,7 @@ inline INT8 ShutdownPot(UINT8 numPot)
   {
     return -1;
   }
-  Port.E.ClearBits(1 << numPot);
+  Port.D.ClearBits(1 << (numPot + 8));
   return 0;
 }
 
@@ -59,7 +59,7 @@ inline INT8 TurnOnPot(UINT8 numPot)
   {
     return -1;
   }
-  Port.E.SetBits(1 << numPot);
+  Port.D.SetBits(1 << (numPot + 8));
   return 0;
 }
 
@@ -77,9 +77,9 @@ inline INT8 ResetPot(UINT8 numPot)
     return -1;
   }
   UINT8 i = 0;
-  Port.D.ClearBits(1 << (numPot + 8));
+  Port.E.ClearBits(1 << numPot);
   for (i = 0; i < 200; i++);
-  Port.D.SetBits(1 << (numPot + 8));
+  Port.E.SetBits  (1 << numPot);
   return 0;
 }
 
