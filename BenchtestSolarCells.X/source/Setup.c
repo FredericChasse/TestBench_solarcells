@@ -74,7 +74,7 @@ void InitTimer(void)
 //  {
 //    LED1_ON;
 //  }
-  timerCounterValue = Timer.Open(TIMER_3, 100, SCALE_MS);   // Timer used for ADC
+  timerCounterValue = Timer.Open(TIMER_3, 50, SCALE_MS);   // Timer used for ADC
   if (timerCounterValue < 0)
   {
     LED1_ON;
@@ -114,7 +114,6 @@ void InitSpi(void)
 {
   INT8 err = 0;
   SpiOpenFlags_t oMasterFlags =   SPI_MASTER_MODE
-//                                | SPI_MASTER_SS
                                 | SPI_16_BITS_CHAR
                                 | SPI_ENHANCED_BUFFER_MODE
                                 | SPI_TX_EVENT_BUFFER_SR_EMPTY
@@ -171,13 +170,13 @@ void InitPorts(void)
                     | BIT_6  | BIT_7  | BIT_8  | BIT_9
                     | BIT_12 | BIT_13 | BIT_14 | BIT_15 );
 
-  Port.B.SetPinsAnalogIn(0xFFFF);   // ADC0-15, RB0 = Vref+
-//  Port.B.SetPinsAnalogIn  ( BIT_0     // Vref+
-//                          | BIT_12    // POT12
-//                          | BIT_13    // POT12
-//                          | BIT_14    // POT12
-//                          | BIT_15    // POT12
-//                          );
+//  Port.B.SetPinsAnalogIn(0xFFFF);   // ADC0-15, RB0 = Vref+
+  Port.B.SetPinsAnalogIn  ( BIT_0     // Vref+
+                          | BIT_12    // POT12
+                          | BIT_13    // POT12
+                          | BIT_14    // POT12
+                          | BIT_15    // POT12
+                          );
   
   Port.C.CloseBits        ( BIT_12  // OSC_IN
                           | BIT_13  // GPIO0
@@ -332,7 +331,8 @@ void InitAdc(void)
   // Port config.
   //================================================
   UINT32 configPort =   //ENABLE_ALL_ANA
-                       ENABLE_AN12_ANA
+                       ENABLE_AN8_ANA
+//                       ENABLE_AN12_ANA
 //                      | ENABLE_AN13_ANA
 //                      | ENABLE_AN14_ANA
 //                      | ENABLE_AN15_ANA
@@ -346,10 +346,11 @@ void InitAdc(void)
                       | SKIP_SCAN_AN5
                       | SKIP_SCAN_AN6
                       | SKIP_SCAN_AN7
-                      | SKIP_SCAN_AN8
+//                      | SKIP_SCAN_AN8
                       | SKIP_SCAN_AN9
                       | SKIP_SCAN_AN10
                       | SKIP_SCAN_AN11
+                      | SKIP_SCAN_AN12
                       | SKIP_SCAN_AN13
                       | SKIP_SCAN_AN14
                       | SKIP_SCAN_AN15
