@@ -217,7 +217,6 @@ void StateInit(void)
   InitPot(2);
 //  InitPot(3);
   potValue = 0;
-//  potValue = 5;
   
   SetPot(2, 0, potValue);
   SetPot(2, 1, potValue);
@@ -228,11 +227,14 @@ void StateInit(void)
 //  SetPot(3, 2, potValue);
 //  SetPot(3, 3, potValue);
 //  ShutdownPot(3);
-//  
+  
   // Init LED driver PCA9685
   InitLedDriver();
 //  ShutdownLedDriver();
   SetLedDutyCycle(12, 200);
+  SetLedDutyCycle(13, 200);
+  SetLedDutyCycle(14, 200);
+  SetLedDutyCycle(15, 200);
 
 }
 
@@ -326,7 +328,10 @@ void StateAcq(void)
       memcpy((void *) &cellVoltageRaw[0], (void *) &Adc.Var.adcReadValues[0], 64);  // sizeof(UINT32) * 16 = 64
   //    cellVoltageRaw[12] = Adc.Var.adcReadValues[12];
 
-      cellVoltageReal[8] = (cellVoltageRaw[8] + 1) * VREF / 1024.0f;
+      cellVoltageReal[ 8] = (cellVoltageRaw[ 8] + 1) * VREF / 1024.0f;
+      cellVoltageReal[ 9] = (cellVoltageRaw[ 9] + 1) * VREF / 1024.0f;
+      cellVoltageReal[10] = (cellVoltageRaw[10] + 1) * VREF / 1024.0f;
+      cellVoltageReal[11] = (cellVoltageRaw[11] + 1) * VREF / 1024.0f;
 //      cellVoltageReal[12] = (cellVoltageRaw[12] + 1) * VREF / 1024.0f;
   //    for (i = 0; i < 16; i++)
   //    {
@@ -344,7 +349,24 @@ void StateAcq(void)
       
 //      memcpy(floatToByte, &cellVoltageReal[12], 4);
       memcpy(floatToByte, &cellVoltageReal[8], 4);
-
+      FifoWrite(&matlabData, &floatToByte[0]);
+      FifoWrite(&matlabData, &floatToByte[1]);
+      FifoWrite(&matlabData, &floatToByte[2]);
+      FifoWrite(&matlabData, &floatToByte[3]);
+      
+      memcpy(floatToByte, &cellVoltageReal[9], 4);
+      FifoWrite(&matlabData, &floatToByte[0]);
+      FifoWrite(&matlabData, &floatToByte[1]);
+      FifoWrite(&matlabData, &floatToByte[2]);
+      FifoWrite(&matlabData, &floatToByte[3]);
+      
+      memcpy(floatToByte, &cellVoltageReal[10], 4);
+      FifoWrite(&matlabData, &floatToByte[0]);
+      FifoWrite(&matlabData, &floatToByte[1]);
+      FifoWrite(&matlabData, &floatToByte[2]);
+      FifoWrite(&matlabData, &floatToByte[3]);
+      
+      memcpy(floatToByte, &cellVoltageReal[11], 4);
       FifoWrite(&matlabData, &floatToByte[0]);
       FifoWrite(&matlabData, &floatToByte[1]);
       FifoWrite(&matlabData, &floatToByte[2]);
@@ -361,6 +383,9 @@ void StateAcq(void)
         potValue++;
 //        SetPot(3, 0, potValue);
         SetPot(2, 0, potValue);
+        SetPot(2, 1, potValue);
+        SetPot(2, 2, potValue);
+        SetPot(2, 3, potValue);
       }
     }
   }
