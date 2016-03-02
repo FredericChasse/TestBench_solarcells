@@ -79,6 +79,16 @@ inline INT8 InitPot (UINT8 numPot);
  *************************************************************/
 inline INT8 SetPot (UINT8 numPot, UINT16 index, UINT8 value);
 
+/**************************************************************
+ * Function name  : SetPotAllUnits
+ * Purpose        : Set all units of a pot to the same value.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3)
+ *                  UINT8 index : pot index (0 - 3)
+ *                  UINT8 value : pot increment (0 - 255)
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
+inline INT8 SetPotAllUnits (UINT8 numPot, UINT8 value);
+
 
 //==============================================================================
 // Macro definitions

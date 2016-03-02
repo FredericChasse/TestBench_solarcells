@@ -101,8 +101,32 @@ inline INT16 ComputePotValue(UINT32 desiredValue)
 
 
 /**************************************************************
+ * Function name  : SetPotAllUnits
+ * Purpose        : Set all units of a pot to the same value.
+ * Arguments      : UINT8 numPot : the number of the pot (0-3)
+ *                  UINT8 index : pot index (0 - 3)
+ *                  UINT8 value : pot increment (0 - 255)
+ * Returns        : 0 on success, -1 on failure.
+ *************************************************************/
+inline INT8 SetPotAllUnits (UINT8 numPot, UINT8 value)
+{
+  if (numPot >= 4)
+  {
+    return -1;
+  }
+  
+  SetPot(numPot, 0, value);
+  SetPot(numPot, 1, value);
+  SetPot(numPot, 2, value);
+  SetPot(numPot, 3, value);
+
+  return 0;
+}
+
+
+/**************************************************************
  * Function name  : SetPot
- * Purpose        : Initialize a potentiometer.
+ * Purpose        : Set the value of a potentiometer.
  * Arguments      : UINT8 numPot : the number of the pot (0-3)
  *                  UINT8 index : pot index (0 - 3)
  *                  UINT8 value : pot increment (0 - 255)

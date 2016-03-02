@@ -98,5 +98,23 @@ inline INT8 FifoRead (sUartFifoBuffer_t *fifo, UINT8 *data);
 //==============================================================================
 void (*pState)(void);       // State pointer, used to navigate between states
 
+
+//==============================================================================
+// Definitions
+//==============================================================================
+#define N_SAMPLES 50
+
+struct sCell
+{
+  UINT32 cellRaw [N_SAMPLES];
+  float  cellFloat;
+  UINT8  nSamples;
+};
+
+struct sAllCells
+{
+  struct sCell cells[16];
+};
+
 #endif	/* __STATE_MACHINE_H__ */
 

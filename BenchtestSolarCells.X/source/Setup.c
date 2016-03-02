@@ -74,7 +74,9 @@ void InitTimer(void)
 //  {
 //    LED1_ON;
 //  }
-  timerCounterValue = Timer.Open(TIMER_3, 50, SCALE_MS);   // Timer used for ADC
+//  timerCounterValue = Timer.Open(TIMER_3, 50, SCALE_MS);   // Timer used for ADC
+//  timerCounterValue = Timer.Open(TIMER_3, 1, SCALE_MS);   // Timer used for ADC
+  timerCounterValue = Timer.Open(TIMER_3, 100, SCALE_US);   // Timer used for ADC
   if (timerCounterValue < 0)
   {
     LED1_ON;

@@ -27,11 +27,12 @@ extern volatile BOOL   oAdcReady
                       ;
 
 BOOL oSendData = 0;
-
 BOOL oMatlabReady = 0;
 
 UINT32 cellVoltageRaw [16] = {0};
 float  cellVoltageReal[16] = {0};
+
+struct sAllCells sCellVoltage = {0};
 
 sUartFifoBuffer_t matlabData = 
 {
@@ -46,6 +47,11 @@ sUartFifoBuffer_t matlabData =
 UINT8 potValue = 0;
 
 float potValues[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+
+const float kFilter = 0.1;
+BOOL oSmoothData = 1;
+
+UINT8 nSamples = 0;
 
 extern sUartLineBuffer_t buffer;
 
@@ -218,19 +224,11 @@ void StateInit(void)
 //  InitPot(3);
   potValue = 0;
   
-  SetPot(2, 0, potValue);
-  SetPot(2, 1, potValue);
-  SetPot(2, 2, potValue);
-  SetPot(2, 3, potValue);
-//  SetPot(3, 0, potValue);
-//  SetPot(3, 1, potValue);
-//  SetPot(3, 2, potValue);
-//  SetPot(3, 3, potValue);
-//  ShutdownPot(3);
+  SetPotAllUnits(2, potValue);
   
   // Init LED driver PCA9685
   InitLedDriver();
-//  ShutdownLedDriver();
+  
   SetLedDutyCycle(12, 200);
   SetLedDutyCycle(13, 200);
   SetLedDutyCycle(14, 200);
@@ -245,76 +243,18 @@ void StateInit(void)
 //===============================================================
 void StateAcq(void)
 {
+  
+  //==================================================================
+  // VARIABLE DECLARATIONS
+  //==================================================================
   static UINT8 i = 0;
   static UINT8 k = 0;
   UINT8 j = 0;
   INT32 err = 0;
   UINT8 floatToByte[4] = {0};
   float fPotValue = 0;
-  //==================================================================
-  // VARIABLE DECLARATIONS
-  //==================================================================
+  UINT32 meanCellRaw[16] = {0};
   
-//  if (oTimer3Ready)
-//  {
-//    oTimer3Ready = 0;
-//    
-//    if (oMatlabReady)
-//    {
-////      memcpy(buffer.buffer, sinus, 120);
-////      buffer.length = 120;
-////
-////      Uart.PutTxFifoBuffer(U_MATLAB, &buffer);
-////      for (i = 0; i < 15; i++)
-////      {
-////        sinus[0][i] += 2*PI;
-////      }
-//    
-//      memcpy(floatToByte, &sinus[k][i], 4);
-//      FifoWrite(&matlabData, &floatToByte[0]);
-//      FifoWrite(&matlabData, &floatToByte[1]);
-//      FifoWrite(&matlabData, &floatToByte[2]);
-//      FifoWrite(&matlabData, &floatToByte[3]);
-//      if (i < 14)
-//      {
-//        i++;
-//      }
-//      else
-//      {
-//        if (k < 1)
-//        {
-//          k++;
-//          i = 0;
-//        }
-//        else
-//        {
-//          for (j = 0; j < 15; j++)
-//          {
-//            sinus[0][j] += 15;
-////            sinus[0][j] += 2*PI;
-//          }
-//          i = 0;
-//          k = 0;
-//        }
-//      }
-//
-//      if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
-//      {
-////        buffer.length = 0;
-//        oSendData = 1;
-////        for (j = 0; j < MATLAB_PACKET_SIZE; j++)
-////        {
-////          FifoRead(&matlabData, &buffer.buffer[j]);
-////          buffer.length++;
-////        }
-////
-////        Uart.PutTxFifoBuffer(U_MATLAB, &buffer);
-//        i = 0;
-//        k = 0;
-//      }
-//    }
-//  }
-
   //==================================================================
   // ADC READ
   // Check cells voltage
@@ -324,68 +264,94 @@ void StateAcq(void)
     if (oAdcReady)
     {
       oAdcReady = 0;
-//      memcpy((void *) &cellVoltageRaw[0], (void *) &Adc.Var.adcReadValues[0], sizeof(UINT32) * 16);
       memcpy((void *) &cellVoltageRaw[0], (void *) &Adc.Var.adcReadValues[0], 64);  // sizeof(UINT32) * 16 = 64
-  //    cellVoltageRaw[12] = Adc.Var.adcReadValues[12];
 
-      cellVoltageReal[ 8] = (cellVoltageRaw[ 8] + 1) * VREF / 1024.0f;
-      cellVoltageReal[ 9] = (cellVoltageRaw[ 9] + 1) * VREF / 1024.0f;
-      cellVoltageReal[10] = (cellVoltageRaw[10] + 1) * VREF / 1024.0f;
-      cellVoltageReal[11] = (cellVoltageRaw[11] + 1) * VREF / 1024.0f;
-//      cellVoltageReal[12] = (cellVoltageRaw[12] + 1) * VREF / 1024.0f;
-  //    for (i = 0; i < 16; i++)
-  //    {
-  //      cellVoltageReal[i] = (cellVoltageRaw[i] + 1) * VREF / 1024.0f;
-  //    }
+      sCellVoltage.cells[ 8].cellRaw[nSamples] = cellVoltageRaw[ 8];
+      sCellVoltage.cells[ 9].cellRaw[nSamples] = cellVoltageRaw[ 9];
+      sCellVoltage.cells[10].cellRaw[nSamples] = cellVoltageRaw[10];
+      sCellVoltage.cells[11].cellRaw[nSamples] = cellVoltageRaw[11];
+      nSamples++;
 
       
-      fPotValue = potValue;
-      memcpy(floatToByte, &fPotValue, 4);
-      
-      FifoWrite(&matlabData, &floatToByte[0]);
-      FifoWrite(&matlabData, &floatToByte[1]);
-      FifoWrite(&matlabData, &floatToByte[2]);
-      FifoWrite(&matlabData, &floatToByte[3]);
-      
-//      memcpy(floatToByte, &cellVoltageReal[12], 4);
-      memcpy(floatToByte, &cellVoltageReal[8], 4);
-      FifoWrite(&matlabData, &floatToByte[0]);
-      FifoWrite(&matlabData, &floatToByte[1]);
-      FifoWrite(&matlabData, &floatToByte[2]);
-      FifoWrite(&matlabData, &floatToByte[3]);
-      
-      memcpy(floatToByte, &cellVoltageReal[9], 4);
-      FifoWrite(&matlabData, &floatToByte[0]);
-      FifoWrite(&matlabData, &floatToByte[1]);
-      FifoWrite(&matlabData, &floatToByte[2]);
-      FifoWrite(&matlabData, &floatToByte[3]);
-      
-      memcpy(floatToByte, &cellVoltageReal[10], 4);
-      FifoWrite(&matlabData, &floatToByte[0]);
-      FifoWrite(&matlabData, &floatToByte[1]);
-      FifoWrite(&matlabData, &floatToByte[2]);
-      FifoWrite(&matlabData, &floatToByte[3]);
-      
-      memcpy(floatToByte, &cellVoltageReal[11], 4);
-      FifoWrite(&matlabData, &floatToByte[0]);
-      FifoWrite(&matlabData, &floatToByte[1]);
-      FifoWrite(&matlabData, &floatToByte[2]);
-      FifoWrite(&matlabData, &floatToByte[3]);
-      
-
-      if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
+      if (nSamples == N_SAMPLES)
       {
-        oSendData = 1;
-      }
+        nSamples = 0;
+        
+        for (i = 0; i < N_SAMPLES; i++)
+        {
+          meanCellRaw[ 8] += sCellVoltage.cells[ 8].cellRaw[i];
+          meanCellRaw[ 9] += sCellVoltage.cells[ 9].cellRaw[i];
+          meanCellRaw[10] += sCellVoltage.cells[10].cellRaw[i];
+          meanCellRaw[11] += sCellVoltage.cells[11].cellRaw[i];
+        }
+        
+        meanCellRaw[ 8] = ((float) meanCellRaw[ 8] / N_SAMPLES) + 0.5;
+        meanCellRaw[ 9] = ((float) meanCellRaw[ 9] / N_SAMPLES) + 0.5;
+        meanCellRaw[10] = ((float) meanCellRaw[10] / N_SAMPLES) + 0.5;
+        meanCellRaw[11] = ((float) meanCellRaw[11] / N_SAMPLES) + 0.5;
+        
+        if (oSmoothData)  // Smoothing function
+        {
+          sCellVoltage.cells[ 8].cellFloat = (kFilter*sCellVoltage.cells[ 8].cellFloat) + (meanCellRaw[ 8] * VREF / 1024.0f)*(1 - kFilter);
+          sCellVoltage.cells[ 9].cellFloat = (kFilter*sCellVoltage.cells[ 9].cellFloat) + (meanCellRaw[ 9] * VREF / 1024.0f)*(1 - kFilter);
+          sCellVoltage.cells[10].cellFloat = (kFilter*sCellVoltage.cells[10].cellFloat) + (meanCellRaw[10] * VREF / 1024.0f)*(1 - kFilter);
+          sCellVoltage.cells[11].cellFloat = (kFilter*sCellVoltage.cells[11].cellFloat) + (meanCellRaw[11] * VREF / 1024.0f)*(1 - kFilter);
+        }
+        else
+        {
+          sCellVoltage.cells[ 8].cellFloat = meanCellRaw[ 8] * VREF / 1024.0f;
+          sCellVoltage.cells[ 9].cellFloat = meanCellRaw[ 9] * VREF / 1024.0f;
+          sCellVoltage.cells[10].cellFloat = meanCellRaw[10] * VREF / 1024.0f;
+          sCellVoltage.cells[11].cellFloat = meanCellRaw[11] * VREF / 1024.0f;
+        }
+        
+        fPotValue = potValue;
+        memcpy(floatToByte, &fPotValue, 4);
 
-      if (potValue < 255)
-      {
-        potValue++;
-//        SetPot(3, 0, potValue);
-        SetPot(2, 0, potValue);
-        SetPot(2, 1, potValue);
-        SetPot(2, 2, potValue);
-        SetPot(2, 3, potValue);
+        FifoWrite(&matlabData, &floatToByte[0]);
+        FifoWrite(&matlabData, &floatToByte[1]);
+        FifoWrite(&matlabData, &floatToByte[2]);
+        FifoWrite(&matlabData, &floatToByte[3]);
+
+        memcpy(floatToByte, &sCellVoltage.cells[8].cellFloat, 4);
+        FifoWrite(&matlabData, &floatToByte[0]);
+        FifoWrite(&matlabData, &floatToByte[1]);
+        FifoWrite(&matlabData, &floatToByte[2]);
+        FifoWrite(&matlabData, &floatToByte[3]);
+
+        memcpy(floatToByte, &sCellVoltage.cells[9].cellFloat, 4);
+        FifoWrite(&matlabData, &floatToByte[0]);
+        FifoWrite(&matlabData, &floatToByte[1]);
+        FifoWrite(&matlabData, &floatToByte[2]);
+        FifoWrite(&matlabData, &floatToByte[3]);
+
+        memcpy(floatToByte, &sCellVoltage.cells[10].cellFloat, 4);
+        FifoWrite(&matlabData, &floatToByte[0]);
+        FifoWrite(&matlabData, &floatToByte[1]);
+        FifoWrite(&matlabData, &floatToByte[2]);
+        FifoWrite(&matlabData, &floatToByte[3]);
+
+        memcpy(floatToByte, &sCellVoltage.cells[11].cellFloat, 4);
+        FifoWrite(&matlabData, &floatToByte[0]);
+        FifoWrite(&matlabData, &floatToByte[1]);
+        FifoWrite(&matlabData, &floatToByte[2]);
+        FifoWrite(&matlabData, &floatToByte[3]);
+
+
+        if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
+        {
+          oSendData = 1;
+        }
+
+        if (potValue < 255)
+        {
+          potValue++;
+          SetPotAllUnits(2, potValue);
+//          SetPot(2, 0, potValue);
+//          SetPot(2, 1, potValue);
+//          SetPot(2, 2, potValue);
+//          SetPot(2, 3, potValue);
+        }
       }
     }
   }
