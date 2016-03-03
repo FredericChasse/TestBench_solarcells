@@ -7,7 +7,10 @@
             <file>file:/C:/Users/ironi/Documents/Chinook/Github/TestBench_solarcells/BenchtestSolarCells.X/source/StateMachine.c</file>
             <file>file:/C:/Users/ironi/Documents/Chinook/Github/TestBench_solarcells/BenchtestSolarCells.X/source/main.c</file>
             <file>file:/C:/Users/ironi/Documents/Chinook/Github/TestBench_solarcells/BenchtestSolarCells.X/headers/StateMachine.h</file>
-            <file>file:/C:/Users/ironi/Documents/Chinook/Github/TestBench_solarcells/BenchtestSolarCells.X/source/Setup.c</file>
+            <file>file:/C:/Users/ironi/Documents/Chinook/Github/TestBench_solarcells/BenchtestSolarCells.X/source/ControlAlgorithm.c</file>
+            <file>file:/C:/Users/ironi/Documents/Chinook/Github/TestBench_solarcells/BenchtestSolarCells.X/headers/Potentiometer.h</file>
+            <file>file:/C:/Users/ironi/Documents/Chinook/Github/TestBench_solarcells/BenchtestSolarCells.X/headers/ControlAlgorithm.h</file>
+            <file>file:/C:/Users/ironi/Documents/Chinook/Github/TestBench_solarcells/BenchtestSolarCells.X/source/Potentiometer.c</file>
         </group>
     </open-files>
 </project-private>

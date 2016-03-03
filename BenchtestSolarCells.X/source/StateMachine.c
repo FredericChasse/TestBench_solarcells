@@ -285,10 +285,10 @@ void StateAcq(void)
           meanCellRaw[11] += sCellVoltage.cells[11].cellRaw[i];
         }
         
-        meanCellRaw[ 8] = ((float) meanCellRaw[ 8] / N_SAMPLES) + 0.5;
-        meanCellRaw[ 9] = ((float) meanCellRaw[ 9] / N_SAMPLES) + 0.5;
-        meanCellRaw[10] = ((float) meanCellRaw[10] / N_SAMPLES) + 0.5;
-        meanCellRaw[11] = ((float) meanCellRaw[11] / N_SAMPLES) + 0.5;
+        meanCellRaw[ 8] = (float) meanCellRaw[ 8] / (float) N_SAMPLES + 0.5;
+        meanCellRaw[ 9] = (float) meanCellRaw[ 9] / (float) N_SAMPLES + 0.5;
+        meanCellRaw[10] = (float) meanCellRaw[10] / (float) N_SAMPLES + 0.5;
+        meanCellRaw[11] = (float) meanCellRaw[11] / (float) N_SAMPLES + 0.5;
         
         if (oSmoothData)  // Smoothing function
         {
@@ -347,10 +347,6 @@ void StateAcq(void)
         {
           potValue++;
           SetPotAllUnits(2, potValue);
-//          SetPot(2, 0, potValue);
-//          SetPot(2, 1, potValue);
-//          SetPot(2, 2, potValue);
-//          SetPot(2, 3, potValue);
         }
       }
     }
@@ -381,7 +377,7 @@ void StateAcq(void)
     err = Uart.GetRxFifoBuffer(UART6, &buffer, FALSE); // put received data in uart6Data
     if (err >= 0)                                         // If no error occured
     {
-      if (buffer.buffer[0] == 'g')
+      if (buffer.buffer[0] == 'c')
       {
         oMatlabReady = 1;
       }
