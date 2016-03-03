@@ -27,8 +27,11 @@ extern volatile BOOL   oAdcReady
                       ;
 
 BOOL  oSendData       = 0
+     ,oNewSample      = 0
+     ,oErrorFlag      = 0
+     ,oCaracDone      = 0
      ,oMatlabReady    = 0
-     ,oCaracMode      = 0
+     ,oCaracMode      = 1   // Caracterization by default
      ,oPsoMode        = 0
      ,oMultiUnitMode  = 0
      ;
@@ -57,12 +60,6 @@ UINT16 nSamples = 0;
 extern sUartLineBuffer_t buffer;
 
 extern float sinus[2][15];
-//float sinus[2][15] = { {0 , .4189 , .8378 , 1.2566 , 1.6755 , 2.0944 , 2.5133 , 2.9322 , 3.3510 , 3.7699 , 4.1888 , 4.6077 , 5.0265 , 5.4454 , 5.8643} ,
-//                       {0 , .4067 , .7431 , .9511  , .9945  , .8660  , .5878  , .2079  , -.2079 , -.5878 , -.8660 , -.9945 , -.9511 , -.7431 , -.4067} };
-//float sinx[32] = {0, 0.19509, 0.38268, 0.55557, 0.70711, 0.83147, 0.92388, 0.98079, 1, 0.98079, 0.92388
-//                 ,0.83147, 0.70711, 0.55557, 0.38268, 0.19509, 0, -0.19509, -0.38268, -0.55557, -0.70711, -0.83147
-//                 ,-0.92388, -0.98079, -1, -0.98079, -0.92388, -0.83147, -0.70711, -0.55557, -0.38268, -0.19509
-//                 };
 
 //==============================================================================
 //	STATES OF STATE MACHINE
@@ -87,76 +84,79 @@ void StateScheduler(void)
   {
     if (INIT_2_ACQ)
     {
-      pState = &StateAcq;       // First state
+      pState = &StateAcq;
     }
     else if (INIT_2_SEND_DATA)
     {
-      pState = &StateSendData;       // Second state
+      pState = &StateSendData;
     }
     else if (INIT_2_ERROR)
     {
-      pState = &StateError;   // Error state
+      pState = &StateError;
+    }
+    else if (INIT_2_COMP)
+    {
+      pState = &StateCompute;
     }
     else
     {
       pState = &StateError;   // Go to Error state by default
     }
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Current state == StateAcq
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   else if (pState == &StateAcq)
   {
-    if (ACQ_2_ACQ)
+    if (ACQ_2_COMP)
     {
-      pState = &StateAcq;       // First state
+      pState = &StateCompute;
     }
     else if (ACQ_2_SEND_DATA)
     {
-      pState = &StateSendData;       // Second state
+      pState = &StateSendData;
+    }
+    else if (ACQ_2_ACQ)
+    {
+      pState = &StateAcq;
     }
     else if (ACQ_2_ERROR)
     {
-      pState = &StateError;   // Error state
+      pState = &StateError;
     }
     else
     {
       pState = &StateError;   // Go to Error state by default
     }
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state == State2
+  // Current state == StateSendData
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   else if (pState == &StateSendData)
   {
     if (SEND_DATA_2_ACQ)
     {
-      pState = &StateAcq;       // First state
+      pState = &StateAcq;
     }
     else if (SEND_DATA_2_SEND_DATA)
     {
-      pState = &StateSendData;       // Second state
+      pState = &StateSendData;
     }
     else if (SEND_DATA_2_ERROR)
     {
-      pState = &StateError;   // Error state
+      pState = &StateError;
+    }
+    else if (SEND_DATA_2_COMP)
+    {
+      pState = &StateCompute;
     }
     else
     {
       pState = &StateError;   // Go to Error state by default
     }
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Current state == StateError
@@ -165,24 +165,52 @@ void StateScheduler(void)
   {
     if (ERROR_2_ACQ)
     {
-      pState = &StateAcq;       // First state
+      pState = &StateAcq;
     }
     else if (ERROR_2_SEND_DATA)
     {
-      pState = &StateSendData;       // Second state
+      pState = &StateSendData;
+    }
+    else if (ERROR_2_COMP)
+    {
+      pState = &StateCompute;
     }
     else if (ERROR_2_ERROR)
     {
-      pState = &StateError;   // Error state
+      pState = &StateError;
     }
     else
     {
       pState = &StateError;   // Go to Error state by default
     }
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
+
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Current state == StateCompute
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  else if (pState == &StateCompute)
+  {
+    if (COMP_2_SEND_DATA)
+    {
+      pState = &StateSendData;
+    }
+    else if (COMP_2_ACQ)
+    {
+      pState = &StateAcq;
+    }
+    else if (COMP_2_COMP)
+    {
+      pState = &StateCompute;
+    }
+    else if (COMP_2_ERROR)
+    {
+      pState = &StateError;
+    }
+    else
+    {
+      pState = &StateError;   // Go to Error state by default
+    }
+  }
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Current state undetermined
@@ -191,9 +219,6 @@ void StateScheduler(void)
   {
     pState = &StateError;   // Go to Error state by default
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
 
 }
 
@@ -249,8 +274,7 @@ void StateAcq(void)
   // VARIABLE DECLARATIONS
   //==================================================================
   INT32 err = 0;
-  UINT8 matlabBuffer[100];
-  float fPotValue;
+  UINT32 i = 0, j = 0;
   
   //==================================================================
   // ADC READ
@@ -263,27 +287,8 @@ void StateAcq(void)
       oAdcReady = 0;
       
       GetAdcValues();
-
-      if (nSamples >= N_SAMPLES_PER_ADC_READ)
-      {
-        nSamples -= N_SAMPLES_PER_ADC_READ;
-        
-        ComputeMeanAdcValues();
-        
-        fPotValue = potValue;
-        memcpy(&matlabBuffer[ 0], &fPotValue, 4);
-        memcpy(&matlabBuffer[ 4], &sCellValues.cells[ 8].cellVoltFloat, 4);
-        memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellVoltFloat, 4);
-        memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellVoltFloat, 4);
-        memcpy(&matlabBuffer[16], &sCellValues.cells[11].cellVoltFloat, 4);
-        AddDataToMatlabFifo(matlabBuffer, 20);
-        
-        if (potValue < 255)
-        {
-          potValue++;
-          SetPotAllUnits(2, potValue);
-        }
-      }
+      
+      oNewSample = 1;   // Go to stateCompute
     }
   }
   
@@ -296,7 +301,7 @@ void StateAcq(void)
 
   if (Uart.Var.oIsRxDataAvailable[UART6])                 // Check if RX interrupt occured
   {
-    err = Uart.GetRxFifoBuffer(UART6, &buffer, FALSE); // put received data in uart6Data
+    err = Uart.GetRxFifoBuffer(UART6, &buffer, FALSE);    // put received data in uart6Data
     if (err >= 0)                                         // If no error occured
     {
       if (buffer.buffer[0] == 'c')
@@ -317,6 +322,32 @@ void StateAcq(void)
       else if (buffer.buffer[0] == 's')
       {
         oMatlabReady = 0;
+        oNewSample   = 0;
+        oSendData    = 0;
+        matlabData.bufEmpty = 1;
+        matlabData.lineBuffer.length = 0;
+        matlabData.inIdx = 0;
+        matlabData.outIdx = 0;
+        matlabData.bufFull = 0;
+        
+        for (i = 0; i < 16; i++)
+        {
+          sCellValues.cells[i].cellPowerFloat = 0;
+          sCellValues.cells[i].cellVoltFloat  = 0;
+          sCellValues.cells[i].nSamples       = 0;
+          
+          for (j = 0; j < N_SAMPLES_PER_ADC_READ; j++)
+          {
+            sCellValues.cells[i].cellVoltRaw[j] = 0;
+          }
+        }
+        
+        if (oCaracMode)
+        {
+          oCaracDone = 0;
+          potValue = 0;
+          SetPotAllUnits(2, potValue);
+        }
       }
     }
   }
@@ -345,13 +376,6 @@ void StateSendData(void)
   }
   
   Uart.PutTxFifoBuffer(U_MATLAB, &localBuffer);
-  
-  if (potValue == 255)
-  {
-    LED1_ON;
-    LED2_ON;
-    while(1);
-  }
 }
 
 
@@ -361,9 +385,71 @@ void StateSendData(void)
 //===============================================================
 void StateCompute(void)
 {
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  //==================================================================
   // VARIABLE DECLARATIONS
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  //==================================================================
+  UINT8 matlabBuffer[100];
+  float fPotValue;
+  
+  oNewSample = 0;
+  
+  if (nSamples >= N_SAMPLES_PER_ADC_READ)
+  {
+    nSamples -= N_SAMPLES_PER_ADC_READ;
+
+    ComputeMeanAdcValues();
+    
+    ComputeCellPower( 8);
+    ComputeCellPower( 9);
+    ComputeCellPower(10);
+    ComputeCellPower(11);
+            
+    if (oCaracMode)
+    {
+      if (!oCaracDone)
+      {
+        fPotValue = potValue;
+        memcpy(&matlabBuffer[ 0], &fPotValue, 4);
+        memcpy(&matlabBuffer[ 4], &sCellValues.cells[ 8].cellPowerFloat, 4);
+        memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellPowerFloat, 4);
+        memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellPowerFloat, 4);
+        memcpy(&matlabBuffer[16], &sCellValues.cells[11].cellPowerFloat, 4);
+  //      memcpy(&matlabBuffer[ 4], &sCellValues.cells[ 8].cellVoltFloat, 4);
+  //      memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellVoltFloat, 4);
+  //      memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellVoltFloat, 4);
+  //      memcpy(&matlabBuffer[16], &sCellValues.cells[11].cellVoltFloat, 4);
+        AddDataToMatlabFifo(matlabBuffer, 20);
+
+        if (potValue < 255)
+        {
+          potValue++;
+          SetPotAllUnits(2, potValue);
+        }
+        else
+        {
+          oCaracDone = 1;
+        }
+      }
+      else
+      {
+        LED1_ON;
+        LED2_ON;
+      }
+    }
+    else if (oPsoMode)
+    {
+      
+    }
+    else if (oMultiUnitMode)
+    {
+      
+    }
+    else
+    {
+      oErrorFlag = 1;
+    }
+  }
 }
 
 
@@ -374,6 +460,8 @@ void StateCompute(void)
 //===============================================================
 void StateError(void)
 {
+  INTDisableInterrupts();   // Disable all interrupts of the system.
+  
   LED1_ON;
   LED2_OFF;
   

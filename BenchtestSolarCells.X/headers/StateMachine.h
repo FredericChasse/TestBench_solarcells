@@ -61,30 +61,30 @@ inline INT8 FifoRead (sUartFifoBuffer_t *fifo, UINT8 *data);
 // conditions tested in the defines should be changed
 // to proper tests
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define INIT_2_ACQ                1               // StateInit to StateAcq
-#define INIT_2_ERROR              0               // StateInit to StateError
-#define INIT_2_COMP               0               // StateInit to StateCompute
-#define INIT_2_SEND_DATA          0               // StateInit to StateSendData
+#define INIT_2_ACQ                (!oErrorFlag                )       // StateInit to StateAcq
+#define INIT_2_ERROR              ( oErrorFlag                )       // StateInit to StateError
+#define INIT_2_COMP               ( 0                         )       // StateInit to StateCompute
+#define INIT_2_SEND_DATA          ( 0                         )       // StateInit to StateSendData
 
-#define ACQ_2_SEND_DATA           oSendData       // StateAcq to StateSendData
-#define ACQ_2_ACQ                !oSendData       // StateAcq to StateAcq
-#define ACQ_2_COMP                0               // StateAcq to StateCompute
-#define ACQ_2_ERROR               0               // StateAcq to StateError
+#define ACQ_2_SEND_DATA           ( oSendData  && !oErrorFlag )       // StateAcq to StateSendData
+#define ACQ_2_ACQ                 (!oSendData  && !oErrorFlag )       // StateAcq to StateAcq
+#define ACQ_2_COMP                ( oNewSample && !oErrorFlag )       // StateAcq to StateCompute
+#define ACQ_2_ERROR               ( oErrorFlag                )       // StateAcq to StateError
 
-#define SEND_DATA_2_ACQ           1               // StateSendData to StateAcq
-#define SEND_DATA_2_SEND_DATA     0               // StateSendData to StateSendData
-#define SEND_DATA_2_ERROR         0               // StateSendData to StateError
-#define SEND_DATA_2_COMP          0               // StateSendData to StateCompute
+#define SEND_DATA_2_ACQ           (!oErrorFlag                )       // StateSendData to StateAcq
+#define SEND_DATA_2_SEND_DATA     ( 0                         )       // StateSendData to StateSendData
+#define SEND_DATA_2_ERROR         ( oErrorFlag                )       // StateSendData to StateError
+#define SEND_DATA_2_COMP          ( 0                         )       // StateSendData to StateCompute
 
-#define ERROR_2_ACQ               0               // StateError to StateAcq
-#define ERROR_2_SEND_DATA         0               // StateError to StateSendData
-#define ERROR_2_ERROR             1               // StateError to StateError
-#define ERROR_2_COMP              0               // StateError to StateCompute
+#define ERROR_2_ACQ               ( 0                         )       // StateError to StateAcq
+#define ERROR_2_SEND_DATA         ( 0                         )       // StateError to StateSendData
+#define ERROR_2_ERROR             ( 1                         )       // StateError to StateError
+#define ERROR_2_COMP              ( 0                         )       // StateError to StateCompute
 
-#define COMP_2_ACQ                1               // StateCompute to StateAcq
-#define COMP_2_SEND_DATA          0               // StateCompute to StateSendData
-#define COMP_2_COMP               0               // StateCompute to StateCompute
-#define COMP_2_ERROR              0               // StateCompute to StateError
+#define COMP_2_ACQ                (!oSendData && !oErrorFlag  )       // StateCompute to StateAcq
+#define COMP_2_SEND_DATA          ( oSendData && !oErrorFlag  )       // StateCompute to StateSendData
+#define COMP_2_COMP               ( 0                         )       // StateCompute to StateCompute
+#define COMP_2_ERROR              ( oErrorFlag                )       // StateCompute to StateError
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 //=========================================
