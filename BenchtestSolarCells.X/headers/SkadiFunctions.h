@@ -39,12 +39,28 @@
 void LedToggle();
 
 /**************************************************************
- * Function name  : SetPwm
+ * Function name  : SetPwmSkadi
  * Purpose        : Set the duty cycle of a LED
  * Arguments      : 1 : LED num (0 - 15), 2 : duty cycle * 10
  * Returns        : None.
  *************************************************************/
-void SetPwm();
+void SetPwmSkadi();
+
+/**************************************************************
+ * Function name  : SetPotSkadi
+ * Purpose        : Set the value of a potentiometer
+ * Arguments      : 1 : Pot num (0 - 3), 2 : index (0 - 3), 3 : pot value (0 - 255)
+ * Returns        : None.
+ *************************************************************/
+void SetPotSkadi();
+
+/**************************************************************
+ * Function name  : SetAllPotSkadi
+ * Purpose        : Set the value of a potentiometer
+ * Arguments      : 1 : Pot num (0 - 3), 2 : pot value (0 - 255)
+ * Returns        : None.
+ *************************************************************/
+void SetAllPotSkadi();
 
 /**************************************************************
  * Function name  : ClearScreen

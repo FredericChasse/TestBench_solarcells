@@ -108,6 +108,8 @@ inline INT8 SetPotAllUnits (UINT8 numPot, UINT8 value);
 #define CS2             LATDbits.LATD6
 #define CS3             LATDbits.LATD7
 
+//float potRealValues[256];
+
 
 //==============================================================================
 // Variable declarations

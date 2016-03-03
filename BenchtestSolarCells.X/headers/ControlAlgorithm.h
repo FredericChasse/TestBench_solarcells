@@ -19,6 +19,7 @@
 #define	__CONTROL_ALGORITHM_H__
 
 #include "Setup.h"
+#include "StateMachine.h"
 
 
 //==============================================================================

@@ -27,6 +27,10 @@
 // Variable declarations
 //==============================================================================
 
+extern struct sAllCells sCellValues;
+extern const float potRealValues[256];
+extern UINT8 potValue;
+
 // All the buttons used. 3 on the steering wheel, 3 on the board
 sButtonStates_t buttons =
 {
@@ -56,9 +60,13 @@ sUartLineBuffer_t buffer =
 
 
 //==============================================================================
-// State Machine functions
+// Solar cells functions
 //==============================================================================
 
+void ComputeCellPower (UINT8 cellIndex)
+{
+  sCellValues.cells[cellIndex].cellPowerFloat = sCellValues.cells[cellIndex].cellVoltFloat * sCellValues.cells[cellIndex].cellVoltFloat / potRealValues[potValue];
+}
 
 
 //==============================================================================
@@ -160,6 +168,7 @@ void AssessButtons (void)
 //==============================================================================
 // MATLAB FIFOs functions
 //==============================================================================
+
 inline INT8 FifoWrite(sUartFifoBuffer_t *fifo, UINT8 *data)
 {
   if (fifo->bufFull)
@@ -174,6 +183,36 @@ inline INT8 FifoWrite(sUartFifoBuffer_t *fifo, UINT8 *data)
     fifo->bufFull = 1;
   }
   fifo->lineBuffer.length++;
+  return 0;
+}
+
+inline INT8 FifoWriteBuffer(sUartFifoBuffer_t *fifo, UINT8 *data, UINT8 length)
+{
+  UINT8 i;
+  
+  if (fifo->bufFull)
+  {
+    return -1;
+  }
+  
+  if ((fifo->maxBufSize - fifo->lineBuffer.length) < length)
+  {
+    return -1;
+  }
+  
+  fifo->bufEmpty = 0;
+  for (i = 0; i < length; i++)
+  {
+    fifo->lineBuffer.buffer[fifo->inIdx] = *data;
+    fifo->inIdx = (fifo->inIdx + 1) % fifo->maxBufSize;
+    fifo->lineBuffer.length++;
+    data++;
+  }
+  
+  if (fifo->inIdx == fifo->outIdx)
+  {
+    fifo->bufFull = 1;
+  }
   return 0;
 }
 

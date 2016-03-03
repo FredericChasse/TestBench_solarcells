@@ -26,13 +26,16 @@ extern volatile BOOL   oAdcReady
                       ,oTimer3Ready
                       ;
 
-BOOL oSendData = 0;
-BOOL oMatlabReady = 0;
+BOOL  oSendData       = 0
+     ,oMatlabReady    = 0
+     ,oCaracMode      = 0
+     ,oPsoMode        = 0
+     ,oMultiUnitMode  = 0
+     ;
 
 UINT32 cellVoltageRaw [16] = {0};
-float  cellVoltageReal[16] = {0};
 
-struct sAllCells sCellVoltage = {0};
+struct sAllCells sCellValues = {0};
 
 sUartFifoBuffer_t matlabData = 
 {
@@ -46,12 +49,10 @@ sUartFifoBuffer_t matlabData =
 
 UINT8 potValue = 0;
 
-float potValues[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-
 const float kFilter = 0.1;
 BOOL oSmoothData = 1;
 
-UINT8 nSamples = 0;
+UINT16 nSamples = 0;
 
 extern sUartLineBuffer_t buffer;
 
@@ -266,10 +267,10 @@ void StateAcq(void)
       oAdcReady = 0;
       memcpy((void *) &cellVoltageRaw[0], (void *) &Adc.Var.adcReadValues[0], 64);  // sizeof(UINT32) * 16 = 64
 
-      sCellVoltage.cells[ 8].cellRaw[nSamples] = cellVoltageRaw[ 8];
-      sCellVoltage.cells[ 9].cellRaw[nSamples] = cellVoltageRaw[ 9];
-      sCellVoltage.cells[10].cellRaw[nSamples] = cellVoltageRaw[10];
-      sCellVoltage.cells[11].cellRaw[nSamples] = cellVoltageRaw[11];
+      sCellValues.cells[ 8].cellVoltRaw[nSamples] = cellVoltageRaw[ 8];
+      sCellValues.cells[ 9].cellVoltRaw[nSamples] = cellVoltageRaw[ 9];
+      sCellValues.cells[10].cellVoltRaw[nSamples] = cellVoltageRaw[10];
+      sCellValues.cells[11].cellVoltRaw[nSamples] = cellVoltageRaw[11];
       nSamples++;
 
       
@@ -279,10 +280,10 @@ void StateAcq(void)
         
         for (i = 0; i < N_SAMPLES; i++)
         {
-          meanCellRaw[ 8] += sCellVoltage.cells[ 8].cellRaw[i];
-          meanCellRaw[ 9] += sCellVoltage.cells[ 9].cellRaw[i];
-          meanCellRaw[10] += sCellVoltage.cells[10].cellRaw[i];
-          meanCellRaw[11] += sCellVoltage.cells[11].cellRaw[i];
+          meanCellRaw[ 8] += sCellValues.cells[ 8].cellVoltRaw[i];
+          meanCellRaw[ 9] += sCellValues.cells[ 9].cellVoltRaw[i];
+          meanCellRaw[10] += sCellValues.cells[10].cellVoltRaw[i];
+          meanCellRaw[11] += sCellValues.cells[11].cellVoltRaw[i];
         }
         
         meanCellRaw[ 8] = (float) meanCellRaw[ 8] / (float) N_SAMPLES + 0.5;
@@ -292,17 +293,17 @@ void StateAcq(void)
         
         if (oSmoothData)  // Smoothing function
         {
-          sCellVoltage.cells[ 8].cellFloat = (kFilter*sCellVoltage.cells[ 8].cellFloat) + (meanCellRaw[ 8] * VREF / 1024.0f)*(1 - kFilter);
-          sCellVoltage.cells[ 9].cellFloat = (kFilter*sCellVoltage.cells[ 9].cellFloat) + (meanCellRaw[ 9] * VREF / 1024.0f)*(1 - kFilter);
-          sCellVoltage.cells[10].cellFloat = (kFilter*sCellVoltage.cells[10].cellFloat) + (meanCellRaw[10] * VREF / 1024.0f)*(1 - kFilter);
-          sCellVoltage.cells[11].cellFloat = (kFilter*sCellVoltage.cells[11].cellFloat) + (meanCellRaw[11] * VREF / 1024.0f)*(1 - kFilter);
+          sCellValues.cells[ 8].cellVoltFloat = (kFilter*sCellValues.cells[ 8].cellVoltFloat) + (meanCellRaw[ 8] * VREF / 1024.0f)*(1 - kFilter);
+          sCellValues.cells[ 9].cellVoltFloat = (kFilter*sCellValues.cells[ 9].cellVoltFloat) + (meanCellRaw[ 9] * VREF / 1024.0f)*(1 - kFilter);
+          sCellValues.cells[10].cellVoltFloat = (kFilter*sCellValues.cells[10].cellVoltFloat) + (meanCellRaw[10] * VREF / 1024.0f)*(1 - kFilter);
+          sCellValues.cells[11].cellVoltFloat = (kFilter*sCellValues.cells[11].cellVoltFloat) + (meanCellRaw[11] * VREF / 1024.0f)*(1 - kFilter);
         }
         else
         {
-          sCellVoltage.cells[ 8].cellFloat = meanCellRaw[ 8] * VREF / 1024.0f;
-          sCellVoltage.cells[ 9].cellFloat = meanCellRaw[ 9] * VREF / 1024.0f;
-          sCellVoltage.cells[10].cellFloat = meanCellRaw[10] * VREF / 1024.0f;
-          sCellVoltage.cells[11].cellFloat = meanCellRaw[11] * VREF / 1024.0f;
+          sCellValues.cells[ 8].cellVoltFloat = meanCellRaw[ 8] * VREF / 1024.0f;
+          sCellValues.cells[ 9].cellVoltFloat = meanCellRaw[ 9] * VREF / 1024.0f;
+          sCellValues.cells[10].cellVoltFloat = meanCellRaw[10] * VREF / 1024.0f;
+          sCellValues.cells[11].cellVoltFloat = meanCellRaw[11] * VREF / 1024.0f;
         }
         
         fPotValue = potValue;
@@ -313,25 +314,25 @@ void StateAcq(void)
         FifoWrite(&matlabData, &floatToByte[2]);
         FifoWrite(&matlabData, &floatToByte[3]);
 
-        memcpy(floatToByte, &sCellVoltage.cells[8].cellFloat, 4);
+        memcpy(floatToByte, &sCellValues.cells[8].cellVoltFloat, 4);
         FifoWrite(&matlabData, &floatToByte[0]);
         FifoWrite(&matlabData, &floatToByte[1]);
         FifoWrite(&matlabData, &floatToByte[2]);
         FifoWrite(&matlabData, &floatToByte[3]);
 
-        memcpy(floatToByte, &sCellVoltage.cells[9].cellFloat, 4);
+        memcpy(floatToByte, &sCellValues.cells[9].cellVoltFloat, 4);
         FifoWrite(&matlabData, &floatToByte[0]);
         FifoWrite(&matlabData, &floatToByte[1]);
         FifoWrite(&matlabData, &floatToByte[2]);
         FifoWrite(&matlabData, &floatToByte[3]);
 
-        memcpy(floatToByte, &sCellVoltage.cells[10].cellFloat, 4);
+        memcpy(floatToByte, &sCellValues.cells[10].cellVoltFloat, 4);
         FifoWrite(&matlabData, &floatToByte[0]);
         FifoWrite(&matlabData, &floatToByte[1]);
         FifoWrite(&matlabData, &floatToByte[2]);
         FifoWrite(&matlabData, &floatToByte[3]);
 
-        memcpy(floatToByte, &sCellVoltage.cells[11].cellFloat, 4);
+        memcpy(floatToByte, &sCellValues.cells[11].cellVoltFloat, 4);
         FifoWrite(&matlabData, &floatToByte[0]);
         FifoWrite(&matlabData, &floatToByte[1]);
         FifoWrite(&matlabData, &floatToByte[2]);

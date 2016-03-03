@@ -27,6 +27,7 @@
 #include "StateFunctions.h"
 #include "Potentiometer.h"
 #include "LedDriver.h"
+#include "ControlAlgorithm.h"
 
 
 //==============================================================================
@@ -106,8 +107,9 @@ void (*pState)(void);       // State pointer, used to navigate between states
 
 struct sCell
 {
-  UINT32 cellRaw [N_SAMPLES];
-  float  cellFloat;
+  UINT32 cellVoltRaw [N_SAMPLES];
+  float  cellVoltFloat;
+  float  cellPowerFloat;
   UINT8  nSamples;
 };
 

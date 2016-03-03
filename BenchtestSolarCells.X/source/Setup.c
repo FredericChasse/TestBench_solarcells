@@ -42,9 +42,11 @@
  **********************************/
 sSkadiCommand_t skadiCommandTable[] =
 {
-   {"led"         , LedToggle   , 1 , "\t\t| flash Led 1 or 2"}    // 1 argument
-  ,{"pwm"         , SetPwm   , 2 , "\t\t| Set the duty cycle of a LED"}    // 2 argument
-  ,{"clc"         , ClearScreen , 0 , "\t\t| Clear terminal window.\t\t\t| 0 arg"}// 1 argument
+   {"led"         , LedToggle       , 1 , "     | flash Led 1 or 2               | 1 arg"}    // 1 argument
+  ,{"pwm"         , SetPwmSkadi     , 2 , "     | Set the duty cycle of a LED    | 2 arg"}    // 2 arguments
+  ,{"pot"         , SetPotSkadi     , 3 , "     | Set the value of a single pot  | 3 arg"}    // 3 arguments
+  ,{"allpot"      , SetAllPotSkadi  , 2 ,    "  | Set the value of 4 pots        | 2 arg"}    // 2 arguments
+  ,{"clc"         , ClearScreen     , 0 , "     | Clear terminal window          | 0 arg"}    // 0 arguments
 };
 
 

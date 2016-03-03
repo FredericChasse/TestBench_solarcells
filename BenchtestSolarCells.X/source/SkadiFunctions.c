@@ -89,12 +89,12 @@ void ClearScreen(sSkadi_t *skadi, sSkadiArgs_t args)
 
 
 /**************************************************************
- * Function name  : SetPwm
+ * Function name  : SetPwmSkadi
  * Purpose        : Set the duty cycle of a LED
  * Arguments      : 1 : LED num (0 - 15), 2 : duty cycle * 10
  * Returns        : None.
  *************************************************************/
-void SetPwm(sSkadi_t *skadi, sSkadiArgs_t args)
+void SetPwmSkadi(sSkadi_t *skadi, sSkadiArgs_t args)
 {
   sUartLineBuffer_t buffer;
 
@@ -104,6 +104,59 @@ void SetPwm(sSkadi_t *skadi, sSkadiArgs_t args)
   if ( (led <= 15) && (pwm <= 1000) )
   {
     SetLedDutyCycle(led, pwm);
+  }
+  else
+  {
+    buffer.length = sprintf(buffer.buffer, "Mauvais argument!\r\n\n");
+    Uart.PutTxFifoBuffer(UART3, &buffer);
+  }
+}
+
+
+/**************************************************************
+ * Function name  : SetPotSkadi
+ * Purpose        : Set the value of a potentiometer
+ * Arguments      : 1 : Pot num (0 - 3), 2 : index (0 - 3), 3 : pot value (0 - 255)
+ * Returns        : None.
+ *************************************************************/
+void SetPotSkadi(sSkadi_t *skadi, sSkadiArgs_t args)
+{
+  sUartLineBuffer_t buffer;
+
+  UINT16  pot = atoi(args.elements[0])    // Convert argument to int
+         ,index = atoi(args.elements[1])
+         ,value = atoi(args.elements[2])
+         ;
+
+  if ( (pot <= 3) && (index <= 3) && (value <= 255) )
+  {
+    SetPot(pot, index, value);
+  }
+  else
+  {
+    buffer.length = sprintf(buffer.buffer, "Mauvais argument!\r\n\n");
+    Uart.PutTxFifoBuffer(UART3, &buffer);
+  }
+}
+
+
+/**************************************************************
+ * Function name  : SetPotSkadi
+ * Purpose        : Set the value of a potentiometer
+ * Arguments      : 1 : Pot num (0 - 3), 2 : pot value (0 - 255)
+ * Returns        : None.
+ *************************************************************/
+void SetAllPotSkadi(sSkadi_t *skadi, sSkadiArgs_t args)
+{
+  sUartLineBuffer_t buffer;
+
+  UINT16  pot = atoi(args.elements[0])    // Convert argument to int
+         ,value = atoi(args.elements[2])
+         ;
+
+  if ( (pot <= 3) && (value <= 255) )
+  {
+    SetPotAllUnits(pot, value);
   }
   else
   {

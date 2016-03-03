@@ -26,6 +26,8 @@
 #define	__STATE_FUNCTIONS_H__
 
 #include "Setup.h"
+#include "Potentiometer.h"
+#include "StateMachine.h"
 
 
 //==============================================================================
@@ -37,6 +39,11 @@
 void AssessButtons (void);
 // =======================================
 
+inline INT8 FifoWriteBuffer (sUartFifoBuffer_t *fifo, UINT8 *data, UINT8 length);
+inline INT8 FifoWrite       (sUartFifoBuffer_t *fifo, UINT8 *data);
+inline INT8 FifoRead        (sUartFifoBuffer_t *fifo, UINT8 *data);
+
+void ComputeCellPower (UINT8 cellIndex);
 
 //==============================================================================
 // Macro definitions
