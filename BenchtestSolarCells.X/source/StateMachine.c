@@ -248,13 +248,9 @@ void StateAcq(void)
   //==================================================================
   // VARIABLE DECLARATIONS
   //==================================================================
-  static UINT8 i = 0;
-  static UINT8 k = 0;
-  UINT8 j = 0;
   INT32 err = 0;
-  UINT8 floatToByte[4] = {0};
-  float fPotValue = 0;
-  UINT32 meanCellRaw[16] = {0};
+  UINT8 matlabBuffer[100];
+  float fPotValue;
   
   //==================================================================
   // ADC READ
@@ -265,85 +261,23 @@ void StateAcq(void)
     if (oAdcReady)
     {
       oAdcReady = 0;
-      memcpy((void *) &cellVoltageRaw[0], (void *) &Adc.Var.adcReadValues[0], 64);  // sizeof(UINT32) * 16 = 64
-
-      sCellValues.cells[ 8].cellVoltRaw[nSamples] = cellVoltageRaw[ 8];
-      sCellValues.cells[ 9].cellVoltRaw[nSamples] = cellVoltageRaw[ 9];
-      sCellValues.cells[10].cellVoltRaw[nSamples] = cellVoltageRaw[10];
-      sCellValues.cells[11].cellVoltRaw[nSamples] = cellVoltageRaw[11];
-      nSamples++;
-
       
-      if (nSamples == N_SAMPLES)
+      GetAdcValues();
+
+      if (nSamples >= N_SAMPLES_PER_ADC_READ)
       {
-        nSamples = 0;
+        nSamples -= N_SAMPLES_PER_ADC_READ;
         
-        for (i = 0; i < N_SAMPLES; i++)
-        {
-          meanCellRaw[ 8] += sCellValues.cells[ 8].cellVoltRaw[i];
-          meanCellRaw[ 9] += sCellValues.cells[ 9].cellVoltRaw[i];
-          meanCellRaw[10] += sCellValues.cells[10].cellVoltRaw[i];
-          meanCellRaw[11] += sCellValues.cells[11].cellVoltRaw[i];
-        }
-        
-        meanCellRaw[ 8] = (float) meanCellRaw[ 8] / (float) N_SAMPLES + 0.5;
-        meanCellRaw[ 9] = (float) meanCellRaw[ 9] / (float) N_SAMPLES + 0.5;
-        meanCellRaw[10] = (float) meanCellRaw[10] / (float) N_SAMPLES + 0.5;
-        meanCellRaw[11] = (float) meanCellRaw[11] / (float) N_SAMPLES + 0.5;
-        
-        if (oSmoothData)  // Smoothing function
-        {
-          sCellValues.cells[ 8].cellVoltFloat = (kFilter*sCellValues.cells[ 8].cellVoltFloat) + (meanCellRaw[ 8] * VREF / 1024.0f)*(1 - kFilter);
-          sCellValues.cells[ 9].cellVoltFloat = (kFilter*sCellValues.cells[ 9].cellVoltFloat) + (meanCellRaw[ 9] * VREF / 1024.0f)*(1 - kFilter);
-          sCellValues.cells[10].cellVoltFloat = (kFilter*sCellValues.cells[10].cellVoltFloat) + (meanCellRaw[10] * VREF / 1024.0f)*(1 - kFilter);
-          sCellValues.cells[11].cellVoltFloat = (kFilter*sCellValues.cells[11].cellVoltFloat) + (meanCellRaw[11] * VREF / 1024.0f)*(1 - kFilter);
-        }
-        else
-        {
-          sCellValues.cells[ 8].cellVoltFloat = meanCellRaw[ 8] * VREF / 1024.0f;
-          sCellValues.cells[ 9].cellVoltFloat = meanCellRaw[ 9] * VREF / 1024.0f;
-          sCellValues.cells[10].cellVoltFloat = meanCellRaw[10] * VREF / 1024.0f;
-          sCellValues.cells[11].cellVoltFloat = meanCellRaw[11] * VREF / 1024.0f;
-        }
+        ComputeMeanAdcValues();
         
         fPotValue = potValue;
-        memcpy(floatToByte, &fPotValue, 4);
-
-        FifoWrite(&matlabData, &floatToByte[0]);
-        FifoWrite(&matlabData, &floatToByte[1]);
-        FifoWrite(&matlabData, &floatToByte[2]);
-        FifoWrite(&matlabData, &floatToByte[3]);
-
-        memcpy(floatToByte, &sCellValues.cells[8].cellVoltFloat, 4);
-        FifoWrite(&matlabData, &floatToByte[0]);
-        FifoWrite(&matlabData, &floatToByte[1]);
-        FifoWrite(&matlabData, &floatToByte[2]);
-        FifoWrite(&matlabData, &floatToByte[3]);
-
-        memcpy(floatToByte, &sCellValues.cells[9].cellVoltFloat, 4);
-        FifoWrite(&matlabData, &floatToByte[0]);
-        FifoWrite(&matlabData, &floatToByte[1]);
-        FifoWrite(&matlabData, &floatToByte[2]);
-        FifoWrite(&matlabData, &floatToByte[3]);
-
-        memcpy(floatToByte, &sCellValues.cells[10].cellVoltFloat, 4);
-        FifoWrite(&matlabData, &floatToByte[0]);
-        FifoWrite(&matlabData, &floatToByte[1]);
-        FifoWrite(&matlabData, &floatToByte[2]);
-        FifoWrite(&matlabData, &floatToByte[3]);
-
-        memcpy(floatToByte, &sCellValues.cells[11].cellVoltFloat, 4);
-        FifoWrite(&matlabData, &floatToByte[0]);
-        FifoWrite(&matlabData, &floatToByte[1]);
-        FifoWrite(&matlabData, &floatToByte[2]);
-        FifoWrite(&matlabData, &floatToByte[3]);
-
-
-        if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
-        {
-          oSendData = 1;
-        }
-
+        memcpy(&matlabBuffer[ 0], &fPotValue, 4);
+        memcpy(&matlabBuffer[ 4], &sCellValues.cells[ 8].cellVoltFloat, 4);
+        memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellVoltFloat, 4);
+        memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellVoltFloat, 4);
+        memcpy(&matlabBuffer[16], &sCellValues.cells[11].cellVoltFloat, 4);
+        AddDataToMatlabFifo(matlabBuffer, 20);
+        
         if (potValue < 255)
         {
           potValue++;
@@ -354,25 +288,12 @@ void StateAcq(void)
   }
   
   //==================================================================
-  // Check for skadi messages or button changes
+  // Check for skadi messages, U_MATLAB msgs or button changes
   //==================================================================
   Skadi.GetCmdMsgFifo();
   
   AssessButtons();
 
-  //==================================================================
-  // SECOND PART OF STATE
-  // Developper should add a small description of expected behavior
-  //==================================================================
-//  sUartLineBuffer_t  matlabData = {
-//                                    .buffer = {0}
-//                                   ,.length =  0
-//                                  }
-//                                  ;
-//  
-//  INT32 err = 0;
-//  
-  
   if (Uart.Var.oIsRxDataAvailable[UART6])                 // Check if RX interrupt occured
   {
     err = Uart.GetRxFifoBuffer(UART6, &buffer, FALSE); // put received data in uart6Data
@@ -381,6 +302,17 @@ void StateAcq(void)
       if (buffer.buffer[0] == 'c')
       {
         oMatlabReady = 1;
+        oCaracMode   = 1;
+      }
+      else if (buffer.buffer[0] == 'p')
+      {
+        oMatlabReady   = 1;
+        oMultiUnitMode = 1;
+      }
+      else if (buffer.buffer[0] == 'm')
+      {
+        oMatlabReady = 1;
+        oPsoMode     = 1;
       }
       else if (buffer.buffer[0] == 's')
       {
@@ -388,7 +320,6 @@ void StateAcq(void)
       }
     }
   }
-
 }
 
 

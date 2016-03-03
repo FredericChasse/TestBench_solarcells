@@ -71,26 +71,26 @@ inline INT8 FifoRead (sUartFifoBuffer_t *fifo, UINT8 *data);
 #define ACQ_2_COMP                0               // StateAcq to StateCompute
 #define ACQ_2_ERROR               0               // StateAcq to StateError
 
-#define SEND_DATA_2_ACQ           1              // StateSendData to StateAcq
-#define SEND_DATA_2_SEND_DATA     0                // StateSendData to StateSendData
-#define SEND_DATA_2_ERROR         0   // StateSendData to StateError
-#define SEND_DATA_2_COMP          0   // StateSendData to StateCompute
+#define SEND_DATA_2_ACQ           1               // StateSendData to StateAcq
+#define SEND_DATA_2_SEND_DATA     0               // StateSendData to StateSendData
+#define SEND_DATA_2_ERROR         0               // StateSendData to StateError
+#define SEND_DATA_2_COMP          0               // StateSendData to StateCompute
 
-#define ERROR_2_ACQ               0   // StateError to StateAcq
-#define ERROR_2_SEND_DATA         0  // StateError to StateSendData
-#define ERROR_2_ERROR             0                // StateError to StateError
-#define ERROR_2_COMP              0                // StateError to StateCompute
+#define ERROR_2_ACQ               0               // StateError to StateAcq
+#define ERROR_2_SEND_DATA         0               // StateError to StateSendData
+#define ERROR_2_ERROR             1               // StateError to StateError
+#define ERROR_2_COMP              0               // StateError to StateCompute
 
-#define COMP_2_ACQ                0         // StateCompute to StateAcq
-#define COMP_2_SEND_DATA          0   // StateCompute to StateSendData
-#define COMP_2_COMP               0    // StateCompute to StateCompute
-#define COMP_2_ERROR              0   // StateCompute to StateError
+#define COMP_2_ACQ                1               // StateCompute to StateAcq
+#define COMP_2_SEND_DATA          0               // StateCompute to StateSendData
+#define COMP_2_COMP               0               // StateCompute to StateCompute
+#define COMP_2_ERROR              0               // StateCompute to StateError
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 //=========================================
 // UART packet size in bytes for MATLAB
 //=========================================
-#define MATLAB_PACKET_SIZE  160             // 32 floats = 128 bytes
+#define MATLAB_PACKET_SIZE  160             // 40 floats = 160 bytes
 //=========================================
 
 
@@ -103,11 +103,11 @@ void (*pState)(void);       // State pointer, used to navigate between states
 //==============================================================================
 // Definitions
 //==============================================================================
-#define N_SAMPLES 50
+#define N_SAMPLES_PER_ADC_READ 50    // Number of samples / ADC value
 
 struct sCell
 {
-  UINT32 cellVoltRaw [N_SAMPLES];
+  UINT32 cellVoltRaw [N_SAMPLES_PER_ADC_READ];
   float  cellVoltFloat;
   float  cellPowerFloat;
   UINT8  nSamples;

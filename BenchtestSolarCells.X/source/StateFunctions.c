@@ -30,6 +30,12 @@
 extern struct sAllCells sCellValues;
 extern const float potRealValues[256];
 extern UINT8 potValue;
+extern UINT32 cellVoltageRaw[16];
+extern UINT16 nSamples;
+extern BOOL oSmoothData;
+extern const float kFilter;
+extern sUartFifoBuffer_t matlabData;
+extern BOOL oSendData;
 
 // All the buttons used. 3 on the steering wheel, 3 on the board
 sButtonStates_t buttons =
@@ -63,9 +69,66 @@ sUartLineBuffer_t buffer =
 // Solar cells functions
 //==============================================================================
 
-void ComputeCellPower (UINT8 cellIndex)
+inline void ComputeCellPower (UINT8 cellIndex)
 {
   sCellValues.cells[cellIndex].cellPowerFloat = sCellValues.cells[cellIndex].cellVoltFloat * sCellValues.cells[cellIndex].cellVoltFloat / potRealValues[potValue];
+}
+
+inline void AddDataToMatlabFifo (UINT8 *buffer, UINT8 size)
+{
+  FifoWriteBuffer(&matlabData, buffer, size);
+  
+  if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
+  {
+    oSendData = 1;
+  }
+}
+
+
+inline void GetAdcValues (void)
+{
+  memcpy((void *) &cellVoltageRaw[0], (void *) &Adc.Var.adcReadValues[0], 64);  // sizeof(UINT32) * 16 = 64
+
+  sCellValues.cells[ 8].cellVoltRaw[nSamples] = cellVoltageRaw[ 8];
+  sCellValues.cells[ 9].cellVoltRaw[nSamples] = cellVoltageRaw[ 9];
+  sCellValues.cells[10].cellVoltRaw[nSamples] = cellVoltageRaw[10];
+  sCellValues.cells[11].cellVoltRaw[nSamples] = cellVoltageRaw[11];
+  nSamples++;
+}
+
+
+inline void ComputeMeanAdcValues (void)
+{
+  UINT8 i = 0;
+  UINT32 meanCellRaw[16] = {0};
+  
+  for (i = 0; i < N_SAMPLES_PER_ADC_READ; i++)
+  {
+    meanCellRaw[ 8] += sCellValues.cells[ 8].cellVoltRaw[i];
+    meanCellRaw[ 9] += sCellValues.cells[ 9].cellVoltRaw[i];
+    meanCellRaw[10] += sCellValues.cells[10].cellVoltRaw[i];
+    meanCellRaw[11] += sCellValues.cells[11].cellVoltRaw[i];
+  }
+
+  meanCellRaw[ 8] = (float) meanCellRaw[ 8] / (float) N_SAMPLES_PER_ADC_READ + 0.5;
+  meanCellRaw[ 9] = (float) meanCellRaw[ 9] / (float) N_SAMPLES_PER_ADC_READ + 0.5;
+  meanCellRaw[10] = (float) meanCellRaw[10] / (float) N_SAMPLES_PER_ADC_READ + 0.5;
+  meanCellRaw[11] = (float) meanCellRaw[11] / (float) N_SAMPLES_PER_ADC_READ + 0.5;
+
+  if (oSmoothData)  // Smoothing function
+  {
+    sCellValues.cells[ 8].cellVoltFloat = (kFilter*sCellValues.cells[ 8].cellVoltFloat) + (meanCellRaw[ 8] * VREF / 1024.0f)*(1 - kFilter);
+    sCellValues.cells[ 9].cellVoltFloat = (kFilter*sCellValues.cells[ 9].cellVoltFloat) + (meanCellRaw[ 9] * VREF / 1024.0f)*(1 - kFilter);
+    sCellValues.cells[10].cellVoltFloat = (kFilter*sCellValues.cells[10].cellVoltFloat) + (meanCellRaw[10] * VREF / 1024.0f)*(1 - kFilter);
+    sCellValues.cells[11].cellVoltFloat = (kFilter*sCellValues.cells[11].cellVoltFloat) + (meanCellRaw[11] * VREF / 1024.0f)*(1 - kFilter);
+  }
+  else
+  {
+    sCellValues.cells[ 8].cellVoltFloat = meanCellRaw[ 8] * VREF / 1024.0f;
+    sCellValues.cells[ 9].cellVoltFloat = meanCellRaw[ 9] * VREF / 1024.0f;
+    sCellValues.cells[10].cellVoltFloat = meanCellRaw[10] * VREF / 1024.0f;
+    sCellValues.cells[11].cellVoltFloat = meanCellRaw[11] * VREF / 1024.0f;
+  }
 }
 
 

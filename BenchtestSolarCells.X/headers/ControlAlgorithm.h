@@ -20,6 +20,7 @@
 
 #include "Setup.h"
 #include "StateMachine.h"
+#include "StateFunctions.h"
 
 
 //==============================================================================
