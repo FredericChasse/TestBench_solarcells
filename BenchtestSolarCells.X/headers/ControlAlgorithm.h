@@ -44,7 +44,6 @@ typedef struct sTustinValue
 void MultiUnit (void);
 void PSO (void);
 void TustinZ    (sTustinValue *input, sTustinValue *output, float acqTime);
-void Caracterization (void);
 
 #endif	/* __CONTROL_ALGORITHM_H__ */
 

@@ -29,11 +29,12 @@
 
 extern struct sAllCells sCellValues;
 extern const float potRealValues[256];
+extern const float potRealValuesInverse[256];
 extern UINT8 potValue;
 extern UINT32 cellVoltageRaw[16];
 extern UINT16 nSamples;
 extern BOOL oSmoothData;
-extern const float kFilter;
+const float kFilter = 0.1;
 extern sUartFifoBuffer_t matlabData;
 extern BOOL oSendData;
 
@@ -71,7 +72,8 @@ sUartLineBuffer_t buffer =
 
 inline void ComputeCellPower (UINT8 cellIndex)
 {
-  sCellValues.cells[cellIndex].cellPowerFloat = sCellValues.cells[cellIndex].cellVoltFloat * sCellValues.cells[cellIndex].cellVoltFloat / potRealValues[potValue];
+//  sCellValues.cells[cellIndex].cellPowerFloat = sCellValues.cells[cellIndex].cellVoltFloat * sCellValues.cells[cellIndex].cellVoltFloat / potRealValues[potValue];
+  sCellValues.cells[cellIndex].cellPowerFloat = sCellValues.cells[cellIndex].cellVoltFloat * sCellValues.cells[cellIndex].cellVoltFloat * potRealValuesInverse[potValue];
 }
 
 inline void AddDataToMatlabFifo (UINT8 *buffer, UINT8 size)

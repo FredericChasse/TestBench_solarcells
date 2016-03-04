@@ -29,11 +29,13 @@ extern volatile BOOL   oAdcReady
 BOOL  oSendData       = 0
      ,oNewSample      = 0
      ,oErrorFlag      = 0
-     ,oCaracDone      = 0
      ,oMatlabReady    = 0
      ,oCaracMode      = 1   // Caracterization by default
+     ,oCaracDone      = 0
      ,oPsoMode        = 0
+     ,oPsoDone        = 0
      ,oMultiUnitMode  = 0
+     ,oMultiUniDone   = 0
      ;
 
 UINT32 cellVoltageRaw [16] = {0};
@@ -52,7 +54,6 @@ sUartFifoBuffer_t matlabData =
 
 UINT8 potValue = 0;
 
-const float kFilter = 0.1;
 BOOL oSmoothData = 1;
 
 UINT16 nSamples = 0;
@@ -385,7 +386,6 @@ void StateSendData(void)
 //===============================================================
 void StateCompute(void)
 {
-  
   //==================================================================
   // VARIABLE DECLARATIONS
   //==================================================================

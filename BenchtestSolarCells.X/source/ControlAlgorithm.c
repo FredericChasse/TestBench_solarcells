@@ -21,18 +21,14 @@
 // Variable declarations
 //==============================================================================
 extern UINT16 nSamples;
+const float DELTA = 3.9;
+extern struct sAllCells sCellValues;
 
 //==============================================================================
 // Control Algorithms functions
 //==============================================================================
 
 void MultiUnit (void)
-{
-  
-}
-
-
-void Caracterization (void)
 {
   
 }
