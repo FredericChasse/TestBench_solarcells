@@ -21,7 +21,8 @@
 // Variable declarations
 //==============================================================================
 extern UINT16 nSamples;
-const float DELTA = 3.9;
+const float DELTA_FLOAT = 3.9;
+const UINT8 DELTA_BYTE  = 1;
 extern struct sAllCells sCellValues;
 extern BOOL  oCaracMode
             ,oCaracDone
@@ -31,6 +32,10 @@ extern BOOL  oCaracMode
             ,oPsoDone
             ;
 extern UINT8 potIndexValue[16];
+
+sTustinValue  gradError   = {0}
+             ,gradError_p = {0}
+             ;
 
 //==============================================================================
 // Control Algorithms functions
@@ -47,9 +52,40 @@ void RandomValue(float *value)
 }
 
 
-void InitPotValue(void)
+void SetPotInitialCondition (void)
 {
+  UINT8 i = 0;
+  float value = 0;
   
+  if (oCaracMode)
+  {
+    for (i = 0; i < 16; i++)
+    {
+      potIndexValue[i] = 0;
+    }
+    SetPotAllUnits(2, potIndexValue[0]);
+  }
+  else if (oPsoMode)
+  {
+    for (i = 0; i < 16; i++)
+    {
+      RandomValue(&value);
+      potIndexValue[i] = value * 255;
+    }
+    SetPot(2, 0, potIndexValue[ 8]);
+    SetPot(2, 1, potIndexValue[ 9]);
+    SetPot(2, 2, potIndexValue[10]);
+    SetPot(2, 3, potIndexValue[11]);
+  }
+  else if (oMultiUnitMode)
+  {
+    RandomValue(&value);
+    potIndexValue[ 9] = value * 255;
+    potIndexValue[10] = potIndexValue[9] + DELTA_BYTE;
+    
+    SetPot(2, 1, potIndexValue[ 9]);
+    SetPot(2, 2, potIndexValue[10]);
+  }
 }
 
 
@@ -91,13 +127,35 @@ void Caracterization (void)
 
 void MultiUnit (void)
 {
+  UINT8 matlabBuffer[100];
+  float fPotValue;
   
+  float error;
+  
+  if (!oMultiUnitDone)
+  {
+    gradError_p.previousValue = gradError_p.currentValue;
+    gradError_p.currentValue = sCellValues.cells[10].cellPowerFloat - sCellValues.cells[9].cellPowerFloat;
+    
+    TustinZ(&gradError_p, &gradError, 0.0002);
+    
+    if (gradError.currentValue > 255)
+    {
+      gradError.currentValue = 255;
+    }
+    
+  }
 }
 
 
 void PSO (void)
 {
+  UINT8 matlabBuffer[100];
+  float fPotValue;
   
+  if (!oPsoDone)
+  {
+  }
 }
 
 

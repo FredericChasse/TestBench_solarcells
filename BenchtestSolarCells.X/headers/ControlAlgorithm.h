@@ -46,6 +46,7 @@ void PSO (void);
 void Caracterization (void);
 void TustinZ    (sTustinValue *input, sTustinValue *output, float acqTime);
 void RandomValue(float *value);
+void SetPotInitialCondition (void);
 
 #endif	/* __CONTROL_ALGORITHM_H__ */
 

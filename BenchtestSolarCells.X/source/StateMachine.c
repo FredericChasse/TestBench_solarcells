@@ -35,7 +35,7 @@ BOOL  oSendData       = 0
      ,oPsoMode        = 0
      ,oPsoDone        = 0
      ,oMultiUnitMode  = 0
-     ,oMultiUniDone   = 0
+     ,oMultiUnitDone  = 0
      ;
 
 UINT32 cellVoltageRaw [16] = {0};
@@ -314,27 +314,35 @@ void StateAcq(void)
       {
         oMatlabReady = 1;
         oCaracMode   = 1;
+        SetPotInitialCondition();
       }
       else if (buffer.buffer[0] == 'p')       // PSO mode
       {
         oMatlabReady   = 1;
         oMultiUnitMode = 1;
+        SetPotInitialCondition();
       }
       else if (buffer.buffer[0] == 'm')       // Multi-Unit mode
       {
         oMatlabReady = 1;
         oPsoMode     = 1;
+        SetPotInitialCondition();
       }
       else if (buffer.buffer[0] == 's')       // Stop current mode. Reset and wait for new command
       {
-        oMatlabReady = 0;
-        oNewSample   = 0;
-        oSendData    = 0;
-        matlabData.bufEmpty = 1;
-        matlabData.lineBuffer.length = 0;
-        matlabData.inIdx = 0;
-        matlabData.outIdx = 0;
-        matlabData.bufFull = 0;
+        oMatlabReady    = 0;
+        oNewSample      = 0;
+        oSendData       = 0;
+        
+        oCaracDone      = 0;
+        oMultiUnitDone  = 0;
+        oPsoDone        = 0;
+        
+        matlabData.bufEmpty           = 1;
+        matlabData.bufFull            = 0;
+        matlabData.lineBuffer.length  = 0;
+        matlabData.inIdx              = 0;
+        matlabData.outIdx             = 0;
         
         for (i = 0; i < 16; i++)
         {
@@ -348,15 +356,7 @@ void StateAcq(void)
           }
         }
         
-        if (oCaracMode)
-        {
-          oCaracDone = 0;
-          for (i = 0; i < 16; i++)
-          {
-            potIndexValue[i] = 0;
-          }
-          SetPotAllUnits(2, potIndexValue[0]);
-        }
+        SetPotInitialCondition();
       }
     }
   }
