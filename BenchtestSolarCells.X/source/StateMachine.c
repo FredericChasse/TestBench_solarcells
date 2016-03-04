@@ -52,7 +52,7 @@ sUartFifoBuffer_t matlabData =
   ,.maxBufSize = UART_LINE_BUFFER_LENGTH
 };
 
-UINT8 potValue = 0;
+UINT8 potIndexValue[16] = {0};
 
 BOOL oSmoothData = 1;
 
@@ -230,6 +230,7 @@ void StateScheduler(void)
 //===============================================================
 void StateInit(void)
 {
+  UINT8 i = 0;
 
   INTDisableInterrupts();   // Disable all interrupts of the system.
 
@@ -249,9 +250,12 @@ void StateInit(void)
 //  InitPot(1);
   InitPot(2);
 //  InitPot(3);
-  potValue = 0;
+  for (i = 0; i < 16; i++)
+  {
+    potIndexValue[i] = 0;
+  }
   
-  SetPotAllUnits(2, potValue);
+  SetPotAllUnits(2, potIndexValue[0]);
   
   // Init LED driver PCA9685
   InitLedDriver();
@@ -289,6 +293,7 @@ void StateAcq(void)
       
       GetAdcValues();
       
+      nSamples++;
       oNewSample = 1;   // Go to stateCompute
     }
   }
@@ -305,22 +310,22 @@ void StateAcq(void)
     err = Uart.GetRxFifoBuffer(UART6, &buffer, FALSE);    // put received data in uart6Data
     if (err >= 0)                                         // If no error occured
     {
-      if (buffer.buffer[0] == 'c')
+      if      (buffer.buffer[0] == 'c')       // Caracterization mode
       {
         oMatlabReady = 1;
         oCaracMode   = 1;
       }
-      else if (buffer.buffer[0] == 'p')
+      else if (buffer.buffer[0] == 'p')       // PSO mode
       {
         oMatlabReady   = 1;
         oMultiUnitMode = 1;
       }
-      else if (buffer.buffer[0] == 'm')
+      else if (buffer.buffer[0] == 'm')       // Multi-Unit mode
       {
         oMatlabReady = 1;
         oPsoMode     = 1;
       }
-      else if (buffer.buffer[0] == 's')
+      else if (buffer.buffer[0] == 's')       // Stop current mode. Reset and wait for new command
       {
         oMatlabReady = 0;
         oNewSample   = 0;
@@ -346,8 +351,11 @@ void StateAcq(void)
         if (oCaracMode)
         {
           oCaracDone = 0;
-          potValue = 0;
-          SetPotAllUnits(2, potValue);
+          for (i = 0; i < 16; i++)
+          {
+            potIndexValue[i] = 0;
+          }
+          SetPotAllUnits(2, potIndexValue[0]);
         }
       }
     }
@@ -385,13 +393,7 @@ void StateSendData(void)
 // Purpose  : Compute algorithm.
 //===============================================================
 void StateCompute(void)
-{
-  //==================================================================
-  // VARIABLE DECLARATIONS
-  //==================================================================
-  UINT8 matlabBuffer[100];
-  float fPotValue;
-  
+{  
   oNewSample = 0;
   
   if (nSamples >= N_SAMPLES_PER_ADC_READ)
@@ -399,51 +401,38 @@ void StateCompute(void)
     nSamples -= N_SAMPLES_PER_ADC_READ;
 
     ComputeMeanAdcValues();
-    
-    ComputeCellPower( 8);
-    ComputeCellPower( 9);
-    ComputeCellPower(10);
-    ComputeCellPower(11);
             
     if (oCaracMode)
     {
-      if (!oCaracDone)
-      {
-        fPotValue = potValue;
-        memcpy(&matlabBuffer[ 0], &fPotValue, 4);
-        memcpy(&matlabBuffer[ 4], &sCellValues.cells[ 8].cellPowerFloat, 4);
-        memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellPowerFloat, 4);
-        memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellPowerFloat, 4);
-        memcpy(&matlabBuffer[16], &sCellValues.cells[11].cellPowerFloat, 4);
-  //      memcpy(&matlabBuffer[ 4], &sCellValues.cells[ 8].cellVoltFloat, 4);
-  //      memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellVoltFloat, 4);
-  //      memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellVoltFloat, 4);
-  //      memcpy(&matlabBuffer[16], &sCellValues.cells[11].cellVoltFloat, 4);
-        AddDataToMatlabFifo(matlabBuffer, 20);
+//      ComputeCellPower( 0, potIndexValue[0]);
+//      ComputeCellPower( 1, potIndexValue[0]);
+//      ComputeCellPower( 2, potIndexValue[0]);
+//      ComputeCellPower( 3, potIndexValue[0]);
 
-        if (potValue < 255)
-        {
-          potValue++;
-          SetPotAllUnits(2, potValue);
-        }
-        else
-        {
-          oCaracDone = 1;
-        }
-      }
-      else
-      {
-        LED1_ON;
-        LED2_ON;
-      }
+//      ComputeCellPower( 4, potIndexValue[0]);
+//      ComputeCellPower( 5, potIndexValue[0]);
+//      ComputeCellPower( 6, potIndexValue[0]);
+//      ComputeCellPower( 7, potIndexValue[0]);
+
+      ComputeCellPower( 8, potIndexValue[0]);
+      ComputeCellPower( 9, potIndexValue[0]);
+      ComputeCellPower(10, potIndexValue[0]);
+      ComputeCellPower(11, potIndexValue[0]);
+
+//      ComputeCellPower(12, potIndexValue[0]);
+//      ComputeCellPower(13, potIndexValue[0]);
+//      ComputeCellPower(14, potIndexValue[0]);
+//      ComputeCellPower(15, potIndexValue[0]);
+      
+      Caracterization();
     }
     else if (oPsoMode)
     {
-      
+      PSO();
     }
     else if (oMultiUnitMode)
     {
-      
+      MultiUnit();
     }
     else
     {
