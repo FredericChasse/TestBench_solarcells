@@ -175,10 +175,10 @@ inline INT8 ResetPot(UINT8 numPot)
 /**************************************************************
  * Function name  : ComputePotValue
  * Purpose        : Converts an ohmic value to a range of 0-255.
- * Arguments      : UINT32 desiredValue, in ohms.
+ * Arguments      : float desiredValue, in ohms.
  * Returns        : value on success, -1 on failure.
  *************************************************************/
-inline INT16 ComputePotValue(UINT32 desiredValue)
+inline INT16 ComputePotValue(float desiredValue)
 {
   if ( !((desiredValue <= MAX_POT_VALUE) && (desiredValue >= WIPER_VALUE)) )
   {

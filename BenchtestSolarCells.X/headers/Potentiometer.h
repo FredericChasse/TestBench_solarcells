@@ -56,10 +56,10 @@ inline INT8 ResetPot   (UINT8 numPot);   // Reset a pot at its mid-value
 /**************************************************************
  * Function name  : ComputePotValue
  * Purpose        : Converts an ohmic value to a range of 0-255.
- * Arguments      : UINT32 desiredValue, in ohms.
+ * Arguments      : float desiredValue, in ohms.
  * Returns        : value on success, -1 on failure.
  *************************************************************/
-inline INT16 ComputePotValue(UINT32 desiredValue);
+inline INT16 ComputePotValue(float desiredValue);
 
 /**************************************************************
  * Function name  : InitPot
@@ -94,11 +94,14 @@ inline INT8 SetPotAllUnits (UINT8 numPot, UINT8 value);
 // Macro definitions
 //==============================================================================
 //#define MAX_POT_VALUE   9.55k +9.56k+9.53k+9.54k
-#define MAX_POT_VALUE   9545
+//#define MAX_POT_VALUE   9545
+#define MAX_POT_VALUE   1050.0f
 //#define WIPER_VALUE     (51.7 + 50.9 + 52.3 + 50.2) / 4
-#define WIPER_VALUE     51
+//#define WIPER_VALUE     51
+#define WIPER_VALUE     50.0f
 //#define MID_VALUE       4.79k+4.88k+4.79k+4.79k
-#define MID_VALUE       4800
+//#define MID_VALUE       4800
+#define MID_VALUE       545.3.0f
 
 #define VREF            2.489f
 //#define VREF            3.268f

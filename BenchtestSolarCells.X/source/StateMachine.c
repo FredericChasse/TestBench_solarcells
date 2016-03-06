@@ -31,9 +31,9 @@ BOOL  oSendData       = 0
      ,oErrorFlag      = 0
      ,oMatlabReady    = 0
      ,oCaracMode      = 1   // Caracterization by default
-     ,oCaracDone      = 0
-     ,oPsoMode        = 0
-     ,oPsoDone        = 0
+     ,oCaracDone      = 1
+     ,oPsoMode        = 1
+     ,oPsoDone        = 1
      ,oMultiUnitMode  = 0
      ,oMultiUnitDone  = 0
      ;
@@ -260,6 +260,21 @@ void StateInit(void)
   // Init LED driver PCA9685
   InitLedDriver();
   
+//  SetLedDutyCycle( 0, 200);
+//  SetLedDutyCycle( 1, 200);
+//  SetLedDutyCycle( 2, 200);
+//  SetLedDutyCycle( 3, 200);
+  
+//  SetLedDutyCycle( 4, 200);
+//  SetLedDutyCycle( 5, 200);
+//  SetLedDutyCycle( 6, 200);
+//  SetLedDutyCycle( 7, 200);
+  
+//  SetLedDutyCycle( 8, 200);
+//  SetLedDutyCycle( 9, 200);
+//  SetLedDutyCycle(10, 200);
+//  SetLedDutyCycle(11, 200);
+  
   SetLedDutyCycle(12, 200);
   SetLedDutyCycle(13, 200);
   SetLedDutyCycle(14, 200);
@@ -312,20 +327,56 @@ void StateAcq(void)
     {
       if      (buffer.buffer[0] == 'c')       // Caracterization mode
       {
-        oMatlabReady = 1;
-        oCaracMode   = 1;
+        oMatlabReady    = 1;
+        
+        oSmoothData     = 1;
+        
+        oMultiUnitMode  = 0;
+        oPsoMode        = 0;
+        oCaracMode      = 1;
+        
+        oCaracDone      = 0;
+        oMultiUnitDone  = 1;
+        oPsoDone        = 1;
+        
+        nSamples        = 0;
+        
         SetPotInitialCondition();
       }
       else if (buffer.buffer[0] == 'p')       // PSO mode
       {
-        oMatlabReady   = 1;
-        oMultiUnitMode = 1;
+        oMatlabReady    = 1;
+        
+        oSmoothData     = 0;
+        
+        oMultiUnitMode  = 0;
+        oCaracMode      = 0;
+        oPsoMode        = 1;
+        
+        oCaracDone      = 1;
+        oMultiUnitDone  = 1;
+        oPsoDone        = 0;
+        
+        nSamples        = 0;
+        
         SetPotInitialCondition();
       }
       else if (buffer.buffer[0] == 'm')       // Multi-Unit mode
       {
-        oMatlabReady = 1;
-        oPsoMode     = 1;
+        oMatlabReady    = 1;
+        
+        oSmoothData     = 0;
+        
+        oPsoMode        = 0;
+        oMultiUnitMode  = 1;
+        oCaracMode      = 0;
+        
+        oCaracDone      = 1;
+        oMultiUnitDone  = 0;
+        oPsoDone        = 1;
+        
+        nSamples        = 0;
+        
         SetPotInitialCondition();
       }
       else if (buffer.buffer[0] == 's')       // Stop current mode. Reset and wait for new command
@@ -334,9 +385,11 @@ void StateAcq(void)
         oNewSample      = 0;
         oSendData       = 0;
         
-        oCaracDone      = 0;
-        oMultiUnitDone  = 0;
-        oPsoDone        = 0;
+        nSamples        = 0;
+        
+        oCaracDone      = 1;
+        oMultiUnitDone  = 1;
+        oPsoDone        = 1;
         
         matlabData.bufEmpty           = 1;
         matlabData.bufFull            = 0;
@@ -357,6 +410,10 @@ void StateAcq(void)
         }
         
         SetPotInitialCondition();
+        
+        oPsoMode        = 0;
+        oMultiUnitMode  = 0;
+        oCaracMode      = 0;
       }
     }
   }
@@ -432,6 +489,8 @@ void StateCompute(void)
     }
     else if (oMultiUnitMode)
     {
+      ComputeCellPower( 9, potIndexValue[0]);
+      ComputeCellPower(10, potIndexValue[0]);
       MultiUnit();
     }
     else

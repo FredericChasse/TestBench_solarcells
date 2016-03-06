@@ -21,6 +21,7 @@
 #include "Setup.h"
 #include "StateMachine.h"
 #include "StateFunctions.h"
+#include "Potentiometer.h"
 
 
 //==============================================================================
@@ -36,6 +37,20 @@ typedef struct sTustinValue
         ,currentValue
         ;
 } sTustinValue;
+
+typedef struct sMultiUnitValues
+{
+  sTustinValue gradError      // Used in the integral
+              ,gradError_p
+              ;
+  float alphaGain;
+  float deltaFloat;
+  UINT8 deltaByte;
+  float initialInputFloat;
+  UINT8 initialInputByte;
+  float sampleTime;
+  float alphaDividedByDelta;
+} sMultiUnitValues_t;
 
 
 //==============================================================================
