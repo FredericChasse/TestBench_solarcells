@@ -60,6 +60,8 @@ UINT16 nSamples = 0;
 
 extern sUartLineBuffer_t buffer;
 
+extern UINT32 iteration;
+
 extern float sinus[2][15];
 
 //==============================================================================
@@ -275,10 +277,10 @@ void StateInit(void)
 //  SetLedDutyCycle(10, 200);
 //  SetLedDutyCycle(11, 200);
   
-  SetLedDutyCycle(12, 200);
-  SetLedDutyCycle(13, 200);
-  SetLedDutyCycle(14, 200);
-  SetLedDutyCycle(15, 200);
+  SetLedDutyCycle(12, 100);
+  SetLedDutyCycle(13, 100);
+  SetLedDutyCycle(14, 100);
+  SetLedDutyCycle(15, 100);
 
 }
 
@@ -386,6 +388,7 @@ void StateAcq(void)
         oSendData       = 0;
         
         nSamples        = 0;
+        iteration       = 0;
         
         oCaracDone      = 1;
         oMultiUnitDone  = 1;
@@ -489,8 +492,8 @@ void StateCompute(void)
     }
     else if (oMultiUnitMode)
     {
-      ComputeCellPower( 9, potIndexValue[0]);
-      ComputeCellPower(10, potIndexValue[0]);
+      ComputeCellPower( 9, potIndexValue[ 9]);
+      ComputeCellPower(10, potIndexValue[10]);
       MultiUnit();
     }
     else

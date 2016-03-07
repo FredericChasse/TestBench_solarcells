@@ -184,7 +184,7 @@ inline INT16 ComputePotValue(float desiredValue)
   {
     return -1;
   }
-  return ((float) ((desiredValue - WIPER_VALUE) / MAX_POT_VALUE)) + 0.5;
+  return ((float) ((desiredValue - WIPER_VALUE) / (MAX_POT_VALUE - WIPER_VALUE)) * 255) + 0.5;
 }
 
 

@@ -103,7 +103,7 @@ void (*pState)(void);       // State pointer, used to navigate between states
 //==============================================================================
 // Definitions
 //==============================================================================
-#define N_SAMPLES_PER_ADC_READ 50    // Number of samples / ADC value
+#define N_SAMPLES_PER_ADC_READ 100    // Number of samples / ADC value
 
 struct sCell
 {

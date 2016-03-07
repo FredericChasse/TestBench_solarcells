@@ -21,8 +21,8 @@
 // Variable declarations
 //==============================================================================
 extern UINT16 nSamples;
-const float DELTA_FLOAT = 7.8;
-const UINT8 DELTA_BYTE  = 2;
+const float DELTA_FLOAT = 78;
+const UINT8 DELTA_BYTE  = 10;
 extern struct sAllCells sCellValues;
 extern BOOL  oCaracMode
             ,oCaracDone
@@ -45,15 +45,15 @@ UINT32 iteration = 0;
 
 sMultiUnitValues_t multiUnitValues = 
 {
-  .alphaGain = 115
- ,.deltaFloat = 7.8
- ,.deltaByte = 2
+  .alphaGain = 3900000000
+ ,.deltaFloat = 39.21568627450980392156862745098
+ ,.deltaByte = 10
  ,.gradError_p = {0}
  ,.gradError = {0}
- ,.initialInputFloat = 830
- ,.initialInputByte = 200
- ,.sampleTime = 0.02
- ,.alphaDividedByDelta = 14.74358974358974358974358974359
+ ,.initialInputFloat = 442.1568627450980392156862745098
+ ,.initialInputByte = 100
+ ,.sampleTime = 0.04
+ ,.alphaDividedByDelta = 10000000
 };
 
 //==============================================================================
@@ -167,6 +167,7 @@ void MultiUnit (void)
 {
   UINT8 matlabBuffer[100];
   float fIteration;
+  float gradError;
   UINT8 potValue;
   
   if (!oMultiUnitDone)
@@ -176,10 +177,10 @@ void MultiUnit (void)
     memcpy(&matlabBuffer[ 0], &fIteration, 4);
     
     memcpy(&matlabBuffer[ 4], &potRealValues[potIndexValue[ 9]], 4);
-    memcpy(&matlabBuffer[ 4], &potRealValues[potIndexValue[10]], 4);
+    memcpy(&matlabBuffer[ 8], &potRealValues[potIndexValue[10]], 4);
     
-    memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellPowerFloat, 4);
-    memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellPowerFloat, 4);
+    memcpy(&matlabBuffer[12], &sCellValues.cells[ 9].cellPowerFloat, 4);
+    memcpy(&matlabBuffer[16], &sCellValues.cells[10].cellPowerFloat, 4);
     
     AddDataToMatlabFifo(matlabBuffer, 20);
     
@@ -193,8 +194,11 @@ void MultiUnit (void)
     }
     
     // Multi-Unit algorithm
+    gradError = sCellValues.cells[10].cellPowerFloat - sCellValues.cells[9].cellPowerFloat;
+    
     multiUnitValues.gradError_p.previousValue = multiUnitValues.gradError_p.currentValue;
-    multiUnitValues.gradError_p.currentValue  = (sCellValues.cells[10].cellPowerFloat - sCellValues.cells[9].cellPowerFloat) * multiUnitValues.alphaDividedByDelta;
+//    multiUnitValues.gradError_p.currentValue  = (sCellValues.cells[10].cellPowerFloat - sCellValues.cells[9].cellPowerFloat) * multiUnitValues.alphaDividedByDelta;
+    multiUnitValues.gradError_p.currentValue  = gradError * multiUnitValues.alphaDividedByDelta;
     
     TustinZ(&multiUnitValues.gradError_p, &multiUnitValues.gradError, multiUnitValues.sampleTime);
     
