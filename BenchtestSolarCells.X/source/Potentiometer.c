@@ -173,18 +173,31 @@ inline INT8 ResetPot(UINT8 numPot)
 
 
 /**************************************************************
- * Function name  : ComputePotValue
+ * Function name  : ComputePotValueFloat2Dec
  * Purpose        : Converts an ohmic value to a range of 0-255.
  * Arguments      : float desiredValue, in ohms.
  * Returns        : value on success, -1 on failure.
  *************************************************************/
-inline INT16 ComputePotValue(float desiredValue)
+inline INT16 ComputePotValueFloat2Dec(float desiredValue)
 {
   if ( !((desiredValue <= MAX_POT_VALUE) && (desiredValue >= WIPER_VALUE)) )
   {
     return -1;
   }
   return ((float) ((desiredValue - WIPER_VALUE) / (MAX_POT_VALUE - WIPER_VALUE)) * 255) + 0.5;
+}
+
+
+/**************************************************************
+ * Function name  : ComputePotValueDec2Float
+ * Purpose        : Converts a range of 0-255 to an ohmic value.
+ * Arguments      : UINT8 decimal value [0 - 255]
+ *                  float *realValue : address of the result
+ * Returns        : None.
+ *************************************************************/
+inline void ComputePotValueDec2Float(UINT8 desiredValue, float *realValue)
+{
+  *realValue = (float) desiredValue * (MAX_POT_VALUE - WIPER_VALUE) / 255.0 + 50;
 }
 
 

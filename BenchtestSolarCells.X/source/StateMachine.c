@@ -64,6 +64,8 @@ extern UINT32 iteration;
 
 extern float sinus[2][15];
 
+float testVar = 0;
+
 //==============================================================================
 //	STATES OF STATE MACHINE
 //==============================================================================
@@ -247,6 +249,8 @@ void StateInit(void)
   
   START_INTERRUPTS;
   
+  InitRandomValue();
+  
 //  // Init digital potentiometers AD8403
 //  InitPot(0);
 //  InitPot(1);
@@ -262,6 +266,7 @@ void StateInit(void)
   // Init LED driver PCA9685
   InitLedDriver();
   
+  InitRandomValue();
 //  SetLedDutyCycle( 0, 200);
 //  SetLedDutyCycle( 1, 200);
 //  SetLedDutyCycle( 2, 200);
@@ -344,6 +349,8 @@ void StateAcq(void)
         nSamples        = 0;
         
         SetPotInitialCondition();
+        
+        oAdcReady       = 0;
       }
       else if (buffer.buffer[0] == 'p')       // PSO mode
       {
@@ -361,7 +368,11 @@ void StateAcq(void)
         
         nSamples        = 0;
         
+        InitRandomValue();
+        
         SetPotInitialCondition();
+        
+        oAdcReady       = 0;
       }
       else if (buffer.buffer[0] == 'm')       // Multi-Unit mode
       {
@@ -380,12 +391,15 @@ void StateAcq(void)
         nSamples        = 0;
         
         SetPotInitialCondition();
+        
+        oAdcReady       = 0;
       }
       else if (buffer.buffer[0] == 's')       // Stop current mode. Reset and wait for new command
       {
         oMatlabReady    = 0;
         oNewSample      = 0;
         oSendData       = 0;
+        oAdcReady       = 0;
         
         nSamples        = 0;
         iteration       = 0;
@@ -416,7 +430,7 @@ void StateAcq(void)
         
         oPsoMode        = 0;
         oMultiUnitMode  = 0;
-        oCaracMode      = 0;
+        oCaracMode      = 1;
       }
     }
   }

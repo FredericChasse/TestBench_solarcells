@@ -21,8 +21,6 @@
 // Variable declarations
 //==============================================================================
 extern UINT16 nSamples;
-const float DELTA_FLOAT = 78;
-const UINT8 DELTA_BYTE  = 10;
 extern struct sAllCells sCellValues;
 extern BOOL  oCaracMode
             ,oCaracDone
@@ -39,14 +37,16 @@ extern const float potRealValuesInverse[256];
 
 UINT32 iteration = 0;
 
+UINT16 randValue = 0;
+
 //sTustinValue  gradError   = {0}
 //             ,gradError_p = {0}
 //             ;
 
 sMultiUnitValues_t multiUnitValues = 
 {
-  .alphaGain = 3900000000
- ,.deltaFloat = 39.21568627450980392156862745098
+//  .alphaGain = 3900000000
+  .deltaFloat = 39.21568627450980392156862745098
  ,.deltaByte = 10
  ,.gradError_p = {0}
  ,.gradError = {0}
@@ -60,14 +60,36 @@ sMultiUnitValues_t multiUnitValues =
 // Control Algorithms functions
 //==============================================================================
 
-void RandomValue(float *value)
+void InitRandomValue(void)
 {
 //  *value = ReadCoreTimer();
 //  *value = ReadCoreTimer() * 2.3283064370807973754314699618685e-10;
-  *value = (0xFFFF & ReadCoreTimer()) * 1.5259021896696421759365224689097e-5;
+//  *value = (0xFFFF & ReadCoreTimer()) * 1.5259021896696421759365224689097e-5;
 //  UINT16 temp = ReadCoreTimer() & 0xFFFF;
 //  temp = (temp << 1) | ((((temp >> 3) & 1) ^ ((temp >> 12) & 1)) ^ (((temp >> 15) & 1) ^ ((temp >> 14) & 1)) );
 //  *value = temp * 1.5259021896696421759365224689097e-5;
+  
+  randValue = 0xFFFF & ReadCoreTimer();
+}
+
+/*
+ *       _______________________________________________________________________________
+ *  <---| 15 | 14 | 13 | 12 | 11 | 10 |  9 |  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |<------
+ *      |____|____|____|____|____|____|____|____|____|____|____|____|____|____|____|____|       |
+ *        |    |         |                                             |   _____                |
+ *        |    |         |                                             |__| XOR |___            |
+ *        |    |         |________________________________________________|_____|  |    _____   |
+ *        |    |                               _____                               |___| XOR |__|
+ *        |    |______________________________| XOR |__________________________________|_____|
+ *        |___________________________________|_____|
+ */
+void GetRandomValue(float *value, float max)
+{
+  randValue = (randValue << 1) |  ( (((randValue >> 3 ) & 1) ^ ((randValue >> 12) & 1)) 
+                                  ^ (((randValue >> 15) & 1) ^ ((randValue >> 14) & 1)) 
+                                  );
+  
+  *value = (float) randValue * 1.5259021896696421759365224689097e-5 * max;
 }
 
 
@@ -88,8 +110,8 @@ void SetPotInitialCondition (void)
   {
     for (i = 0; i < 16; i++)
     {
-      RandomValue(&value);
-      potIndexValue[i] = value * 255;
+      GetRandomValue(&value, 255);
+      potIndexValue[i] = value;
     }
 //    SetPot(0, 0, potIndexValue[ 0]);
 //    SetPot(0, 1, potIndexValue[ 1]);
@@ -168,7 +190,7 @@ void MultiUnit (void)
   UINT8 matlabBuffer[100];
   float fIteration;
   float gradError;
-  UINT8 potValue;
+  UINT16 potValue;
   
   if (!oMultiUnitDone)
   {
@@ -183,15 +205,6 @@ void MultiUnit (void)
     memcpy(&matlabBuffer[16], &sCellValues.cells[10].cellPowerFloat, 4);
     
     AddDataToMatlabFifo(matlabBuffer, 20);
-    
-    if (iteration <= 60000)
-    {
-      iteration++;
-    }
-    else
-    {
-      oMultiUnitDone = 1;
-    }
     
     // Multi-Unit algorithm
     gradError = sCellValues.cells[10].cellPowerFloat - sCellValues.cells[9].cellPowerFloat;
@@ -212,13 +225,33 @@ void MultiUnit (void)
       multiUnitValues.gradError.currentValue = WIPER_VALUE;
     }
     
-    potValue = ComputePotValue(multiUnitValues.gradError.currentValue);
+    potValue = ComputePotValueFloat2Dec(multiUnitValues.gradError.currentValue);
+    
+    if ( (potValue + multiUnitValues.deltaByte) > 255 )
+    {
+      potValue = 255 - multiUnitValues.deltaByte;
+      ComputePotValueDec2Float(potValue, &multiUnitValues.gradError.currentValue);
+    }
     
     potIndexValue[ 9] = potValue;
     potIndexValue[10] = potIndexValue[9] + multiUnitValues.deltaByte;
     
     SetPot(2, 1, potIndexValue[ 9]);
     SetPot(2, 2, potIndexValue[10]);
+    
+    if (iteration <= 60000)
+    {
+      iteration++;
+    }
+    else
+    {
+      oMultiUnitDone = 1;
+    }
+  }
+  else
+  {
+    LED1_ON;
+    LED2_ON;
   }
 }
 
@@ -230,6 +263,12 @@ void PSO (void)
   
   if (!oPsoDone)
   {
+    
+  }
+  else
+  {
+    LED1_ON;
+    LED2_ON;
   }
 }
 

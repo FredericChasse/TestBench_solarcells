@@ -54,12 +54,21 @@ inline INT8 TurnOnPot(UINT8 numPot);
 inline INT8 ResetPot   (UINT8 numPot);   // Reset a pot at its mid-value
 
 /**************************************************************
- * Function name  : ComputePotValue
+ * Function name  : ComputePotValueDec2Float
+ * Purpose        : Converts a range of 0-255 to an ohmic value.
+ * Arguments      : UINT8 decimal value [0 - 255]
+ *                  float *realValue : address of the result
+ * Returns        : None.
+ *************************************************************/
+inline void ComputePotValueDec2Float(UINT8 desiredValue, float *realValue);
+
+/**************************************************************
+ * Function name  : ComputePotValueFloat2Dec
  * Purpose        : Converts an ohmic value to a range of 0-255.
  * Arguments      : float desiredValue, in ohms.
  * Returns        : value on success, -1 on failure.
  *************************************************************/
-inline INT16 ComputePotValue(float desiredValue);
+inline INT16 ComputePotValueFloat2Dec(float desiredValue);
 
 /**************************************************************
  * Function name  : InitPot
