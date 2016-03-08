@@ -52,6 +52,29 @@ typedef struct sMultiUnitValues
   float alphaDividedByDelta;
 } sMultiUnitValues_t;
 
+typedef struct sPsoValues
+{
+  float c1;
+  float c2;
+  const float omega;
+  const UINT8 rMaxByte;
+  const UINT8 rMinByte;
+  const float rMaxFloat;
+  const float rMinFloat;
+  const UINT8 nParticles;
+  UINT8 pBestByte[16];
+  float pBestFloat[16];
+  UINT8 particleIndex[16];
+  float objFnc[16];
+  float maxObjFnc;
+  UINT8 gBestByte;
+  float gBestFloat;
+  const UINT16 maxIteration;
+  float particleSpeed[16];
+} sPsoValues_t;
+
+#define MAX(x, y)   (x > y ? x : y)
+
 
 //==============================================================================
 // Control Algorithms public functions prototypes

@@ -45,15 +45,36 @@ UINT16 randValue = 0;
 
 sMultiUnitValues_t multiUnitValues = 
 {
-//  .alphaGain = 3900000000
-  .deltaFloat = 39.21568627450980392156862745098
- ,.deltaByte = 10
- ,.gradError_p = {0}
- ,.gradError = {0}
- ,.initialInputFloat = 442.1568627450980392156862745098
- ,.initialInputByte = 100
- ,.sampleTime = 0.04
- ,.alphaDividedByDelta = 10000000
+//  .alphaGain            = 3900000000
+  .deltaFloat           = 39.21568627450980392156862745098
+ ,.deltaByte            = 10
+ ,.gradError_p          = {0}
+ ,.gradError            = {0}
+ ,.initialInputFloat    = 442.1568627450980392156862745098
+ ,.initialInputByte     = 100
+ ,.sampleTime           = 0.04
+ ,.alphaDividedByDelta  = 10000000
+};
+
+sPsoValues_t psoValues = 
+{
+   .c1            = 1
+  ,.c2            = 1
+  ,.gBestFloat    = 0
+  ,.gBestByte     = 0
+  ,.nParticles    = 3
+  ,.omega         = 1
+  ,.maxObjFnc     = 0
+  ,.objFnc        = {0}
+  ,.particleIndex = {0}
+  ,.pBestByte     = {0}
+  ,.pBestFloat    = {0}
+  ,.particleSpeed = {0}
+  ,.rMaxByte      = 255
+  ,.rMaxFloat     = MAX_POT_VALUE
+  ,.rMinByte      = 0
+  ,.rMinFloat     = WIPER_VALUE
+  ,.maxIteration  = 100
 };
 
 //==============================================================================
@@ -77,11 +98,11 @@ void InitRandomValue(void)
  *  <---| 15 | 14 | 13 | 12 | 11 | 10 |  9 |  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |<------
  *      |____|____|____|____|____|____|____|____|____|____|____|____|____|____|____|____|       |
  *        |    |         |                                             |   _____                |
- *        |    |         |                                             |__| XOR |___            |
- *        |    |         |________________________________________________|_____|  |    _____   |
- *        |    |                               _____                               |___| XOR |__|
- *        |    |______________________________| XOR |__________________________________|_____|
- *        |___________________________________|_____|
+ *        |    |         |                                              ->| XOR |__             |
+ *        |    |          ----------------------------------------------->|_____|  |    _____   |
+ *        |    |                               _____                                -->| XOR |__|
+ *        |     ----------------------------->| XOR |--------------------------------->|_____|
+ *         ---------------------------------->|_____|
  */
 void GetRandomValue(float *value, float max)
 {
@@ -111,7 +132,7 @@ void SetPotInitialCondition (void)
     for (i = 0; i < 16; i++)
     {
       GetRandomValue(&value, 255);
-      potIndexValue[i] = value;
+      potIndexValue[i] = (UINT8) value;
     }
 //    SetPot(0, 0, potIndexValue[ 0]);
 //    SetPot(0, 1, potIndexValue[ 1]);
@@ -126,7 +147,20 @@ void SetPotInitialCondition (void)
     SetPot(2, 0, potIndexValue[ 8]);
     SetPot(2, 1, potIndexValue[ 9]);
     SetPot(2, 2, potIndexValue[10]);
-    SetPot(2, 3, potIndexValue[11]);
+//    SetPot(2, 3, potIndexValue[11]);
+    
+    psoValues.pBestByte [ 8] = potIndexValue[ 8];
+    psoValues.pBestByte [ 9] = potIndexValue[ 9];
+    psoValues.pBestByte [10] = potIndexValue[10];
+//    psoValues.pBestByte [11] = potIndexValue[11];
+    psoValues.pBestFloat[ 8] = potRealValues[potIndexValue[ 8]];
+    psoValues.pBestFloat[ 9] = potRealValues[potIndexValue[ 9]];
+    psoValues.pBestFloat[10] = potRealValues[potIndexValue[10]];
+//    psoValues.pBestFloat[11] = potRealValues[potIndexValue[11]];
+    psoValues.particleIndex[0] = 8;
+    psoValues.particleIndex[1] = 9;
+    psoValues.particleIndex[2] = 10;
+//    psoValues.particleIndex[3] = 11;
     
 //    SetPot(3, 0, potIndexValue[12]);
 //    SetPot(3, 1, potIndexValue[13]);
@@ -230,7 +264,8 @@ void MultiUnit (void)
     if ( (potValue + multiUnitValues.deltaByte) > 255 )
     {
       potValue = 255 - multiUnitValues.deltaByte;
-      ComputePotValueDec2Float(potValue, &multiUnitValues.gradError.currentValue);
+//      ComputePotValueDec2Float(potValue, &multiUnitValues.gradError.currentValue);
+      multiUnitValues.gradError.currentValue = potRealValues[potValue];
     }
     
     potIndexValue[ 9] = potValue;
@@ -260,10 +295,69 @@ void PSO (void)
 {
   UINT8 matlabBuffer[100];
   float fPotValue;
+  UINT8 i;
   
   if (!oPsoDone)
   {
+    // Pbest
+//    if (sAllCells.cells[8].cellPowerFloat > psoValues.objFnc[8])
+//    {
+//      psoValues.objFnc[8] = sAllCells.cells[8].cellPowerFloat;
+//      psoValues.pBestByte[8] = potIndexValue[8];
+//      psoValues.pBestFloat[8] = potRealValues[potIndexValue[8]];
+//    }
+//    if (sAllCells.cells[9].cellPowerFloat > psoValues.objFnc[9])
+//    {
+//      psoValues.objFnc[9] = sAllCells.cells[9].cellPowerFloat;
+//      psoValues.pBestByte[9] = potIndexValue[9];
+//      psoValues.pBestFloat[9] = potRealValues[potIndexValue[9]];
+//    }
+//    if (sAllCells.cells[10].cellPowerFloat > psoValues.objFnc[10])
+//    {
+//      psoValues.objFnc[10] = sAllCells.cells[10].cellPowerFloat;
+//      psoValues.pBestByte[10] = potIndexValue[10];
+//      psoValues.pBestFloat[10] = potRealValues[potIndexValue[10]];
+//    }
     
+    psoValues.maxObjFnc = 0;
+    for (i = 0; i < psoValues.nParticles; i++)
+    {
+      // Pbest
+      if (sCellValues.cells[psoValues.particleIndex[i]].cellPowerFloat > psoValues.objFnc[psoValues.particleIndex[i]])
+      {
+        psoValues.objFnc    [psoValues.particleIndex[i]] = sCellValues.cells[psoValues.particleIndex[i]].cellPowerFloat;
+        psoValues.pBestByte [psoValues.particleIndex[i]] = potIndexValue    [psoValues.particleIndex[i]];
+        psoValues.pBestFloat[psoValues.particleIndex[i]] = potRealValues    [potIndexValue[psoValues.particleIndex[i]]];
+      }
+      
+      // Gbest
+      if (psoValues.maxObjFnc < sCellValues.cells[psoValues.particleIndex[i]].cellPowerFloat)
+      {
+        psoValues.maxObjFnc = sCellValues.cells[psoValues.particleIndex[i]].cellPowerFloat;
+        psoValues.gBestByte = psoValues.particleIndex[i];
+        psoValues.gBestFloat = potRealValues[psoValues.particleIndex[i]];
+      }
+    }
+    
+    float rand1, rand2;
+    
+    for (i = 0; i < psoValues.nParticles; i++)
+    {
+      GetRandomValue(&rand1, 1);
+      GetRandomValue(&rand2, 1);
+      psoValues.particleSpeed[psoValues.particleIndex[i]] = psoValues.c1 * rand1 * (psoValues.pBestFloat[psoValues.particleIndex[i]] - potRealValues[psoValues.particleIndex[i]])
+                                                          + psoValues.c2 * rand2 * (psoValues.gBestFloat                             - potRealValues[psoValues.particleIndex[i]])
+                                                          ;
+    }
+    
+    if (iteration < psoValues.maxIteration)
+    {
+      iteration++;
+    }
+    else
+    {
+      oPsoDone = 1;
+    }
   }
   else
   {
