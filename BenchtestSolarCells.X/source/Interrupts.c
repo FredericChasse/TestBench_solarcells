@@ -43,10 +43,6 @@ volatile BOOL  oAdcReady    = 0
 //=============================================
 void __ISR(_TIMER_1_VECTOR, T1_INTERRUPT_PRIORITY) Timer1InterruptHandler(void)
 {
-  /*
-   * DEVELOPPER CODE HERE
-   */
-  
   // Increment the number of overflows from this timer. Used primarily by Input Capture
   Timer.Var.nOverflows[0]++;
   
@@ -58,10 +54,6 @@ void __ISR(_TIMER_1_VECTOR, T1_INTERRUPT_PRIORITY) Timer1InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_2_VECTOR, T2_INTERRUPT_PRIORITY) Timer2InterruptHandler(void)
 {
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
   // Increment the number of overflows from this timer. Used primarily by Input Capture
   Timer.Var.nOverflows[1]++;
 
@@ -86,10 +78,6 @@ void __ISR(_TIMER_3_VECTOR, T3_INTERRUPT_PRIORITY) Timer3InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_4_VECTOR, T4_INTERRUPT_PRIORITY) Timer4InterruptHandler(void)
 {
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
   // Increment the number of overflows from this timer. Used primarily by Input Capture
   Timer.Var.nOverflows[3]++;
 
@@ -101,10 +89,6 @@ void __ISR(_TIMER_4_VECTOR, T4_INTERRUPT_PRIORITY) Timer4InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_5_VECTOR, T5_INTERRUPT_PRIORITY) Timer5InterruptHandler(void)
 {
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
   // Increment the number of overflows from this timer. Used primarily by Input Capture
   Timer.Var.nOverflows[4]++;
 
@@ -296,7 +280,6 @@ void __ISR(_ADC_VECTOR, ADC_INTERRUPT_PRIO) AdcInterruptHandler(void)
 {
   Adc.Read();               // Read the enabled channels and puts them in Adc.Var.adcReadValues[]
   oAdcReady = 1;
-//  LED2_TOGGLE;
   INTClearFlag(INT_AD1);    // Clear the ADC conversion done interrupt Flag
 }
 //=============================================

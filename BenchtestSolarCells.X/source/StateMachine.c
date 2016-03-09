@@ -502,7 +502,12 @@ void StateCompute(void)
     }
     else if (oPsoMode)
     {
-      PSO();
+      ComputeCellPower( 8, potIndexValue[0]);
+      ComputeCellPower( 9, potIndexValue[0]);
+      ComputeCellPower(10, potIndexValue[0]);
+//      ComputeCellPower(11, potIndexValue[0]);
+      
+      ParticleSwarmOptimization();
     }
     else if (oMultiUnitMode)
     {

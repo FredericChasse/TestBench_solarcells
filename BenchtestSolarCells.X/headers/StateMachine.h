@@ -90,7 +90,7 @@ inline INT8 FifoRead (sUartFifoBuffer_t *fifo, UINT8 *data);
 //=========================================
 // UART packet size in bytes for MATLAB
 //=========================================
-#define MATLAB_PACKET_SIZE  160             // 40 floats = 160 bytes
+#define MATLAB_PACKET_SIZE  140             // 35 floats = 140 bytes
 //=========================================
 
 

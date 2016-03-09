@@ -80,7 +80,7 @@ typedef struct sPsoValues
 // Control Algorithms public functions prototypes
 //==============================================================================
 void MultiUnit (void);
-void PSO (void);
+void ParticleSwarmOptimization (void);
 void Caracterization (void);
 void TustinZ    (sTustinValue *input, sTustinValue *output, float acqTime);
 void InitRandomValue(void);
