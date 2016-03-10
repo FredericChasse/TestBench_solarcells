@@ -64,7 +64,10 @@ extern UINT32 iteration;
 
 extern float sinus[2][15];
 
-float testVar = 0;
+float testFloat = 0;
+UINT32 testUint32 = 0;
+INT32 testInt32 = 0;
+UINT8 testUint8 = 0;
 
 //==============================================================================
 //	STATES OF STATE MACHINE
@@ -505,9 +508,11 @@ void StateCompute(void)
       ComputeCellPower( 8, potIndexValue[0]);
       ComputeCellPower( 9, potIndexValue[0]);
       ComputeCellPower(10, potIndexValue[0]);
-//      ComputeCellPower(11, potIndexValue[0]);
       
+//      UINT32 coreTickRate = Timer.Tic(1500, SCALE_US);
       ParticleSwarmOptimization();
+//      testInt32 = Timer.Toc(1500, coreTickRate);
+//      testFloat = 0;
     }
     else if (oMultiUnitMode)
     {

@@ -134,6 +134,11 @@ void SetPotInitialCondition (void)
     {
       GetRandomValue(&value, 255);
       potIndexValue[i] = (UINT8) value;
+      
+      psoValues.pBestByte[i]      = 0;
+      psoValues.objFnc[i]         = 0;
+      psoValues.pBestFloat[i]     = WIPER_VALUE;
+      psoValues.particleSpeed[i]  = 0;      
     }
     
     SetPot(2, 0, potIndexValue[ 8]);
@@ -174,7 +179,7 @@ void SetPotInitialCondition (void)
 
 void Caracterization (void)
 {
-  UINT8 matlabBuffer[100];
+  UINT8 matlabBuffer[20];
   float fPotValue;
   
   if (!oCaracDone)
@@ -210,7 +215,7 @@ void Caracterization (void)
 
 void MultiUnit (void)
 {
-  UINT8 matlabBuffer[100];
+  UINT8 matlabBuffer[20];
   float fIteration;
   float gradError;
   UINT16 potValue;
@@ -282,7 +287,7 @@ void MultiUnit (void)
 
 void ParticleSwarmOptimization (void)
 {
-  UINT8 matlabBuffer[100];
+  UINT8 matlabBuffer[28];
   UINT8 i;
   UINT8 index;
   float fIteration;
@@ -313,17 +318,17 @@ void ParticleSwarmOptimization (void)
       // Pbest
       if (sCellValues.cells[index].cellPowerFloat > psoValues.objFnc[index])
       {
-        psoValues.objFnc    [index] = sCellValues.cells[index].cellPowerFloat;
-        psoValues.pBestByte [index] = potIndexValue    [index];
-        psoValues.pBestFloat[index] = potRealValues    [potIndexValue[index]];
+        psoValues.pBestByte [index] = potIndexValue[index];
+        psoValues.pBestFloat[index] = potRealValues[potIndexValue[index]];
       }
+      psoValues.objFnc[index] = sCellValues.cells[index].cellPowerFloat;
       
       // Gbest
       if (psoValues.maxObjFnc < sCellValues.cells[index].cellPowerFloat)
       {
         psoValues.maxObjFnc  = sCellValues.cells[index].cellPowerFloat;
-        psoValues.gBestByte  = index;
-        psoValues.gBestFloat = potRealValues[index];
+        psoValues.gBestByte  = potIndexValue[index];
+        psoValues.gBestFloat = potRealValues[potIndexValue[index]];
       }
     }
     
@@ -334,14 +339,14 @@ void ParticleSwarmOptimization (void)
     {
       index = psoValues.particleIndex[i];
       
-      GetRandomValue(&rand1, 1);
+      GetRandomValue(&rand1, 1);  // Get random value between 0 and 1
       GetRandomValue(&rand2, 1);
       
-      psoValues.particleSpeed[index] = psoValues.c1 * rand1 * (psoValues.pBestFloat[index] - potRealValues[index])
-                                     + psoValues.c2 * rand2 * (psoValues.gBestFloat        - potRealValues[index])
+      psoValues.particleSpeed[index] = psoValues.c1 * rand1 * (psoValues.pBestFloat[index] - potRealValues[potIndexValue[index]])
+                                     + psoValues.c2 * rand2 * (psoValues.gBestFloat        - potRealValues[potIndexValue[index]])
                                      ;
       
-      nextPos = psoValues.omega * potRealValues[potIndexValue[index]];
+      nextPos = psoValues.omega * potRealValues[potIndexValue[index]] + psoValues.particleSpeed[index];
       if (nextPos > MAX_POT_VALUE)
       {
         potIndexValue[index] = 255;
@@ -379,20 +384,20 @@ void ParticleSwarmOptimization (void)
 
 /*
  * Function : TustinZ
- * Desc :     Discrete integrator using Tustin's method
+ * Desc     : Discrete integrator using Tustin's method
  * Graphic example :
  *
  *         _______
- *  x(n)  |   1   | y(n)
+ *  x(t)  |   1   |  y(t)
  * ------>| ----- |------>
  *        |   s   |
  *        |_______|
  * 
- *   y(n)      1       T     z + 1
- *  -----  =  ---  =  --- * -------
- *   x(n)      s       2     z - 1
+ *   y(t)      1        T     z + 1
+ *  -----  =  ---  ~=  --- * -------
+ *   x(t)      s        2     z - 1
  *
- *  iLaplace => y(n) = y(n-1) + T/2 * ( x(n-1) + x(n) )
+ *  iLaplace {Z} => y(n) = y(n-1) + T/2 * ( x(n-1) + x(n) )
  *
  */
 void TustinZ (sTustinValue *input, sTustinValue *output, float acqTime)
