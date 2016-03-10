@@ -379,6 +379,9 @@ void StateAcq(void)
       }
       else if (buffer.buffer[0] == 'm')       // Multi-Unit mode
       {
+        LED1_OFF;
+        LED2_OFF;
+        
         oMatlabReady    = 1;
         
         oSmoothData     = 0;
@@ -505,9 +508,9 @@ void StateCompute(void)
     }
     else if (oPsoMode)
     {
-      ComputeCellPower( 8, potIndexValue[0]);
-      ComputeCellPower( 9, potIndexValue[0]);
-      ComputeCellPower(10, potIndexValue[0]);
+      ComputeCellPower( 8, potIndexValue[ 8]);
+      ComputeCellPower( 9, potIndexValue[ 9]);
+      ComputeCellPower(10, potIndexValue[10]);
       
 //      UINT32 coreTickRate = Timer.Tic(1500, SCALE_US);
       ParticleSwarmOptimization();

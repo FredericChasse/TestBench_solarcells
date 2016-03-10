@@ -54,12 +54,17 @@ sMultiUnitValues_t multiUnitValues =
  ,.initialInputByte     = 100
  ,.sampleTime           = 0.04
  ,.alphaDividedByDelta  = 10000000
+ ,.maxIteration         = 100
 };
 
 sPsoValues_t psoValues = 
 {
-   .c1            = 1
-  ,.c2            = 1
+   .c1            = 3
+  ,.c1i           = 3
+  ,.c1f           = 0.5
+  ,.c2            = 0.5
+  ,.c2i           = 0.5
+  ,.c2f           = 3
   ,.gBestFloat    = 0
   ,.gBestByte     = 0
   ,.nParticles    = 3
@@ -74,7 +79,7 @@ sPsoValues_t psoValues =
   ,.rMaxFloat     = MAX_POT_VALUE
   ,.rMinByte      = 0
   ,.rMinFloat     = WIPER_VALUE
-  ,.maxIteration  = 100
+  ,.maxIteration  = 500
 };
 
 //==============================================================================
@@ -132,8 +137,8 @@ void SetPotInitialCondition (void)
   {
     for (i = 0; i < 16; i++)
     {
-      GetRandomValue(&value, 255);
-      potIndexValue[i] = (UINT8) value;
+      GetRandomValue(&value, 255);  // Get random value between 0 and 255
+      potIndexValue[i] = (UINT8) (value + 0.5);
       
       psoValues.pBestByte[i]      = 0;
       psoValues.objFnc[i]         = 0;
@@ -268,7 +273,7 @@ void MultiUnit (void)
     SetPot(2, 1, potIndexValue[ 9]);
     SetPot(2, 2, potIndexValue[10]);
     
-    if (iteration <= 60000)
+    if (iteration <= multiUnitValues.maxIteration)
     {
       iteration++;
     }
@@ -332,6 +337,10 @@ void ParticleSwarmOptimization (void)
       }
     }
     
+    // Acceleration coefficients
+    psoValues.c1 = (psoValues.c1f - psoValues.c1i)*(iteration / psoValues.maxIteration) + psoValues.c1i;    // Cognitive parameter
+    psoValues.c2 = (psoValues.c2f - psoValues.c2i)*(iteration / psoValues.maxIteration) + psoValues.c2i;    // Social parameter
+    
     // Particles' speed
     float nextPos;
     
@@ -388,14 +397,14 @@ void ParticleSwarmOptimization (void)
  * Graphic example :
  *
  *         _______
- *  x(t)  |   1   |  y(t)
+ *  X(s)  |   1   |  Y(s)
  * ------>| ----- |------>
  *        |   s   |
  *        |_______|
  * 
- *   y(t)      1        T     z + 1
- *  -----  =  ---  ~=  --- * -------
- *   x(t)      s        2     z - 1
+ *   Y(s)      1        Y(z)     T     z + 1
+ *  -----  =  ---  ==> ----- =  --- * -------
+ *   X(s)      s        X(z)     2     z - 1
  *
  *  iLaplace {Z} => y(n) = y(n-1) + T/2 * ( x(n-1) + x(n) )
  *

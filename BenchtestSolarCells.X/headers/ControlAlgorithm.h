@@ -50,12 +50,17 @@ typedef struct sMultiUnitValues
   UINT8 initialInputByte;
   float sampleTime;
   float alphaDividedByDelta;
+  const UINT16 maxIteration;
 } sMultiUnitValues_t;
 
 typedef struct sPsoValues
 {
   float c1;
+  const float c1f;
+  const float c1i;
   float c2;
+  const float c2f;
+  const float c2i;
   const float omega;
   const UINT8 rMaxByte;
   const UINT8 rMinByte;
