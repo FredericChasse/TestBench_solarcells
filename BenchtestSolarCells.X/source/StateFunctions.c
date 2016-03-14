@@ -37,6 +37,7 @@ extern BOOL oSmoothData;
 const float kFilter = 0.1;
 extern sUartFifoBuffer_t matlabData;
 extern BOOL oSendData;
+UINT8 matlabPacketSize = MATLAB_PACKET_SIZE_CARAC;
 
 // All the buttons used. 3 on the steering wheel, 3 on the board
 sButtonStates_t buttons =
@@ -78,9 +79,20 @@ inline void ComputeCellPower (UINT8 cellIndex, UINT8 potIndex)
 
 inline void AddDataToMatlabFifo (UINT8 *buffer, UINT8 size)
 {
-  FifoWriteBuffer(&matlabData, buffer, size);
+  INT8 err = FifoWriteBuffer(&matlabData, buffer, size);
+  if (err < 0)
+  {
+    LED1_ON;
+    LED2_OFF;
+    while(1)
+    {
+      Timer.DelayMs(500);
+      LED1_TOGGLE;
+      LED2_TOGGLE;
+    }
+  }
   
-  if (matlabData.lineBuffer.length >= MATLAB_PACKET_SIZE)
+  if (matlabData.lineBuffer.length >= matlabPacketSize)
   {
     oSendData = 1;
   }

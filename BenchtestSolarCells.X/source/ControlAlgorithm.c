@@ -30,6 +30,8 @@ extern BOOL  oCaracMode
             ,oPsoDone
             ;
 
+extern UINT8 matlabPacketSize;
+
 extern UINT8 potIndexValue[16];
 
 extern const float potRealValues[256];
@@ -59,12 +61,12 @@ sMultiUnitValues_t multiUnitValues =
 
 sPsoValues_t psoValues = 
 {
-   .c1            = 3
-  ,.c1i           = 3
-  ,.c1f           = 0.5
-  ,.c2            = 0.5
-  ,.c2i           = 0.5
-  ,.c2f           = 3
+   .c1            = 0.5
+  ,.c1i           = 0.5
+  ,.c1f           = 3
+  ,.c2            = 3
+  ,.c2i           = 3
+  ,.c2f           = 0.5
   ,.gBestFloat    = 0
   ,.gBestByte     = 0
   ,.nParticles    = 3
@@ -79,7 +81,7 @@ sPsoValues_t psoValues =
   ,.rMaxFloat     = MAX_POT_VALUE
   ,.rMinByte      = 0
   ,.rMinFloat     = WIPER_VALUE
-  ,.maxIteration  = 500
+  ,.maxIteration  = 56
 };
 
 //==============================================================================
@@ -123,10 +125,13 @@ void GetRandomValue(float *value, float max)
 void SetPotInitialCondition (void)
 {
   UINT8 i = 0;
+  UINT8 index = 0;
   float value = 0;
+  float potDelta;
   
   if (oCaracMode)
   {
+    matlabPacketSize = MATLAB_PACKET_SIZE_CARAC;
     for (i = 0; i < 16; i++)
     {
       potIndexValue[i] = 0;
@@ -135,15 +140,31 @@ void SetPotInitialCondition (void)
   }
   else if (oPsoMode)
   {
-    for (i = 0; i < 16; i++)
+    matlabPacketSize = MATLAB_PACKET_SIZE_PSO;
+    
+    potDelta = (MAX_POT_VALUE - WIPER_VALUE) / (psoValues.nParticles + 1);
+    
+    psoValues.particleIndex[0] = 8;
+    psoValues.particleIndex[1] = 9;
+    psoValues.particleIndex[2] = 10;
+    
+    for (i = 0; i < psoValues.nParticles; i++)
     {
-      GetRandomValue(&value, 255);  // Get random value between 0 and 255
-      potIndexValue[i] = (UINT8) (value + 0.5);
+      index = psoValues.particleIndex[i];
       
-      psoValues.pBestByte[i]      = 0;
-      psoValues.objFnc[i]         = 0;
-      psoValues.pBestFloat[i]     = WIPER_VALUE;
-      psoValues.particleSpeed[i]  = 0;      
+//      GetRandomValue(&value, 255);  // Get random value between 0 and 255
+//      potIndexValue[index] = (UINT8) (value + 0.5);
+      
+      GetRandomValue(&value, 2*potDelta);  // Get random value between 0 and 2*potDelta
+      value -= potDelta;  // random value between [-potDelta, potDelta]
+      
+      value = WIPER_VALUE + (i + 1)*potDelta + value;
+      potIndexValue[index] = ComputePotValueFloat2Dec(value);
+      
+      psoValues.pBestByte[index]      = potIndexValue[index];
+      psoValues.objFnc[index]         = 0;
+      psoValues.pBestFloat[index]     = potRealValues[potIndexValue[index]];
+      psoValues.particleSpeed[index]  = 0;
     }
     
     SetPot(2, 0, potIndexValue[ 8]);
@@ -158,16 +179,14 @@ void SetPotInitialCondition (void)
     psoValues.pBestFloat[ 9] = potRealValues[potIndexValue[ 9]];
     psoValues.pBestFloat[10] = potRealValues[potIndexValue[10]];
     
-    psoValues.particleIndex[0] = 8;
-    psoValues.particleIndex[1] = 9;
-    psoValues.particleIndex[2] = 10;
-    
     psoValues.maxObjFnc = 0;
     psoValues.gBestByte = 0;
     psoValues.gBestFloat = WIPER_VALUE;
   }
   else if (oMultiUnitMode)
   {
+    matlabPacketSize = MATLAB_PACKET_SIZE_MULTI_UNIT;
+    
     potIndexValue[ 9] = multiUnitValues.initialInputByte;
     potIndexValue[10] = potIndexValue[9] + multiUnitValues.deltaByte;
     
@@ -292,7 +311,7 @@ void MultiUnit (void)
 
 void ParticleSwarmOptimization (void)
 {
-  UINT8 matlabBuffer[28];
+  UINT8 matlabBuffer[56];
   UINT8 i;
   UINT8 index;
   float fIteration;
@@ -312,7 +331,15 @@ void ParticleSwarmOptimization (void)
     memcpy(&matlabBuffer[20], &sCellValues.cells[ 9].cellPowerFloat, 4);
     memcpy(&matlabBuffer[24], &sCellValues.cells[10].cellPowerFloat, 4);
     
-    AddDataToMatlabFifo(matlabBuffer, 28);
+    memcpy(&matlabBuffer[28], &psoValues.pBestFloat   [ 8], 4);
+    memcpy(&matlabBuffer[32], &psoValues.pBestFloat   [ 9], 4);
+    memcpy(&matlabBuffer[36], &psoValues.pBestFloat   [10], 4);
+    memcpy(&matlabBuffer[40], &psoValues.gBestFloat       , 4);
+    memcpy(&matlabBuffer[44], &psoValues.particleSpeed[ 8], 4);
+    memcpy(&matlabBuffer[48], &psoValues.particleSpeed[ 9], 4);
+    memcpy(&matlabBuffer[52], &psoValues.particleSpeed[10], 4);
+    
+    AddDataToMatlabFifo(matlabBuffer, 56);
     
     // PSO algorithm
     psoValues.maxObjFnc = 0;

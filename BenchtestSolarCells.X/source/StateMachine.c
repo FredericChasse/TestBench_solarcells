@@ -26,6 +26,8 @@ extern volatile BOOL   oAdcReady
                       ,oTimer3Ready
                       ;
 
+extern UINT8 matlabPacketSize;
+
 BOOL  oSendData       = 0
      ,oNewSample      = 0
      ,oErrorFlag      = 0
@@ -458,7 +460,7 @@ void StateSendData(void)
   
   UINT32 i = 0;
   
-  for (i = 0; i < MATLAB_PACKET_SIZE; i++)
+  for (i = 0; i < matlabPacketSize; i++)
   {
     FifoRead(&matlabData, &localBuffer.buffer[i]);
     localBuffer.length++;
