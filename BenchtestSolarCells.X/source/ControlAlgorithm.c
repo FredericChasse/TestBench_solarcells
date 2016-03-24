@@ -70,7 +70,7 @@ sPsoValues_t psoValues =
   ,.gBestFloat    = 0
   ,.gBestByte     = 0
   ,.nParticles    = 3
-  ,.omega         = 1
+  ,.omega         = 0.5
   ,.maxObjFnc     = 0
   ,.objFnc        = {0}
   ,.particleIndex = {0}
@@ -378,11 +378,12 @@ void ParticleSwarmOptimization (void)
       GetRandomValue(&rand1, 1);  // Get random value between 0 and 1
       GetRandomValue(&rand2, 1);
       
-      psoValues.particleSpeed[index] = psoValues.c1 * rand1 * (psoValues.pBestFloat[index] - potRealValues[potIndexValue[index]])
-                                     + psoValues.c2 * rand2 * (psoValues.gBestFloat        - potRealValues[potIndexValue[index]])
-                                     ;
+      psoValues.particleSpeed[index]  = psoValues.omega * psoValues.particleSpeed[index]                                            // Inertia
+                                      + psoValues.c1 * rand1 * (psoValues.pBestFloat[index] - potRealValues[potIndexValue[index]])  // Cognitive behavior
+                                      + psoValues.c2 * rand2 * (psoValues.gBestFloat        - potRealValues[potIndexValue[index]])  // Social behavior
+                                      ;
       
-      nextPos = psoValues.omega * potRealValues[potIndexValue[index]] + psoValues.particleSpeed[index];
+      nextPos = potRealValues[potIndexValue[index]] + psoValues.particleSpeed[index];
       if (nextPos > MAX_POT_VALUE)
       {
         potIndexValue[index] = 255;
