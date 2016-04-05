@@ -80,13 +80,22 @@ inline INT8 InitPot (UINT8 numPot);
 
 /**************************************************************
  * Function name  : SetPot
- * Purpose        : Initialize a potentiometer.
- * Arguments      : UINT8 numPot : the number of the pot (0-3)
- *                  UINT16 index : pot index (0 - 3)
+ * Purpose        : Set the value of a potentiometer.
+ * Arguments      : UINT8 numPot : the number of the pot (0-15)
  *                  UINT8 value : pot increment (0 - 255)
  * Returns        : 0 on success, -1 on failure.
  *************************************************************/
-inline INT8 SetPot (UINT8 numPot, UINT16 index, UINT8 value);
+inline INT8 SetPot (UINT8 numPot, UINT8 value);
+
+///**************************************************************
+// * Function name  : SetPot
+// * Purpose        : Initialize a potentiometer.
+// * Arguments      : UINT8 numPot : the number of the pot (0-3)
+// *                  UINT16 index : pot index (0 - 3)
+// *                  UINT8 value : pot increment (0 - 255)
+// * Returns        : 0 on success, -1 on failure.
+// *************************************************************/
+//inline INT8 SetPot (UINT8 numPot, UINT16 index, UINT8 value);
 
 /**************************************************************
  * Function name  : SetPotAllUnits

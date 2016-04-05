@@ -130,7 +130,7 @@ void SetPotSkadi(sSkadi_t *skadi, sSkadiArgs_t args)
 
   if ( (pot <= 3) && (index <= 3) && (value <= 255) )
   {
-    SetPot(pot, index, value);
+    SetPot((pot << 2 | index), value);
   }
   else
   {

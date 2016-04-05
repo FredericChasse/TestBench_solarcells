@@ -54,19 +54,19 @@ sMultiUnitValues_t multiUnitValues =
  ,.gradError            = {0}
  ,.initialInputFloat    = 442.1568627450980392156862745098
  ,.initialInputByte     = 100
- ,.sampleTime           = 0.04
+ ,.sampleTime           = 0.08
  ,.alphaDividedByDelta  = 10000000
  ,.maxIteration         = 100
 };
 
 sPsoValues_t psoValues = 
 {
-   .c1            = 0.5
-  ,.c1i           = 0.5
-  ,.c1f           = 3
-  ,.c2            = 3
-  ,.c2i           = 3
-  ,.c2f           = 0.5
+   .c1            = 1
+  ,.c1i           = 1
+  ,.c1f           = 2.5
+  ,.c2            = 2
+  ,.c2i           = 2
+  ,.c2f           = 0
   ,.gBestFloat    = 0
   ,.gBestByte     = 0
   ,.nParticles    = 3
@@ -137,6 +137,7 @@ void SetPotInitialCondition (void)
       potIndexValue[i] = 0;
     }
     SetPotAllUnits(2, potIndexValue[0]);
+    SetPotAllUnits(3, potIndexValue[0]);
   }
   else if (oPsoMode)
   {
@@ -146,7 +147,8 @@ void SetPotInitialCondition (void)
     
     psoValues.particleIndex[0] = 8;
     psoValues.particleIndex[1] = 9;
-    psoValues.particleIndex[2] = 10;
+//    psoValues.particleIndex[2] = 10;
+    psoValues.particleIndex[2] = 12;
     
     for (i = 0; i < psoValues.nParticles; i++)
     {
@@ -167,17 +169,20 @@ void SetPotInitialCondition (void)
       psoValues.particleSpeed[index]  = 0;
     }
     
-    SetPot(2, 0, potIndexValue[ 8]);
-    SetPot(2, 1, potIndexValue[ 9]);
-    SetPot(2, 2, potIndexValue[10]);
+    SetPot(8, potIndexValue[ 8]);
+    SetPot(9, potIndexValue[ 9]);
+//    SetPot(10, potIndexValue[10]);
+    SetPot(12, potIndexValue[12]);
     
     psoValues.pBestByte [ 8] = potIndexValue[ 8];
     psoValues.pBestByte [ 9] = potIndexValue[ 9];
-    psoValues.pBestByte [10] = potIndexValue[10];
+//    psoValues.pBestByte [10] = potIndexValue[10];
+    psoValues.pBestByte [12] = potIndexValue[12];
     
     psoValues.pBestFloat[ 8] = potRealValues[potIndexValue[ 8]];
     psoValues.pBestFloat[ 9] = potRealValues[potIndexValue[ 9]];
-    psoValues.pBestFloat[10] = potRealValues[potIndexValue[10]];
+//    psoValues.pBestFloat[10] = potRealValues[potIndexValue[10]];
+    psoValues.pBestFloat[12] = potRealValues[potIndexValue[12]];
     
     psoValues.maxObjFnc = 0;
     psoValues.gBestByte = 0;
@@ -195,15 +200,15 @@ void SetPotInitialCondition (void)
     multiUnitValues.gradError.previousValue = 0;
     multiUnitValues.gradError.currentValue = multiUnitValues.initialInputFloat;
     
-    SetPot(2, 1, potIndexValue[ 9]);
-    SetPot(2, 2, potIndexValue[10]);
+    SetPot(9, potIndexValue[ 9]);
+    SetPot(10, potIndexValue[10]);
   }
 }
 
 
 void Caracterization (void)
 {
-  UINT8 matlabBuffer[20];
+  UINT8 matlabBuffer[40];
   float fPotValue;
   
   if (!oCaracDone)
@@ -214,16 +219,18 @@ void Caracterization (void)
     memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellPowerFloat, 4);
     memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellPowerFloat, 4);
     memcpy(&matlabBuffer[16], &sCellValues.cells[11].cellPowerFloat, 4);
-//      memcpy(&matlabBuffer[ 4], &sCellValues.cells[ 8].cellVoltFloat, 4);
-//      memcpy(&matlabBuffer[ 8], &sCellValues.cells[ 9].cellVoltFloat, 4);
-//      memcpy(&matlabBuffer[12], &sCellValues.cells[10].cellVoltFloat, 4);
-//      memcpy(&matlabBuffer[16], &sCellValues.cells[11].cellVoltFloat, 4);
-    AddDataToMatlabFifo(matlabBuffer, 20);
+    memcpy(&matlabBuffer[20], &sCellValues.cells[12].cellPowerFloat, 4);
+    memcpy(&matlabBuffer[24], &sCellValues.cells[13].cellPowerFloat, 4);
+    memcpy(&matlabBuffer[28], &sCellValues.cells[14].cellPowerFloat, 4);
+    memcpy(&matlabBuffer[32], &sCellValues.cells[15].cellPowerFloat, 4);
+    
+    AddDataToMatlabFifo(matlabBuffer, 36);
 
     if (potIndexValue[0] < 255)
     {
       potIndexValue[0]++;
       SetPotAllUnits(2, potIndexValue[0]);
+      SetPotAllUnits(3, potIndexValue[0]);
     }
     else
     {
@@ -289,8 +296,8 @@ void MultiUnit (void)
     potIndexValue[ 9] = potValue;
     potIndexValue[10] = potIndexValue[9] + multiUnitValues.deltaByte;
     
-    SetPot(2, 1, potIndexValue[ 9]);
-    SetPot(2, 2, potIndexValue[10]);
+    SetPot(9, potIndexValue[ 9]);
+    SetPot(10, potIndexValue[10]);
     
     if (iteration <= multiUnitValues.maxIteration)
     {
@@ -325,19 +332,23 @@ void ParticleSwarmOptimization (void)
     
     memcpy(&matlabBuffer[ 4], &potRealValues[potIndexValue[ 8]], 4);
     memcpy(&matlabBuffer[ 8], &potRealValues[potIndexValue[ 9]], 4);
-    memcpy(&matlabBuffer[12], &potRealValues[potIndexValue[10]], 4);
+//    memcpy(&matlabBuffer[12], &potRealValues[potIndexValue[10]], 4);
+    memcpy(&matlabBuffer[12], &potRealValues[potIndexValue[12]], 4);
     
     memcpy(&matlabBuffer[16], &sCellValues.cells[ 8].cellPowerFloat, 4);
     memcpy(&matlabBuffer[20], &sCellValues.cells[ 9].cellPowerFloat, 4);
-    memcpy(&matlabBuffer[24], &sCellValues.cells[10].cellPowerFloat, 4);
+//    memcpy(&matlabBuffer[24], &sCellValues.cells[10].cellPowerFloat, 4);
+    memcpy(&matlabBuffer[24], &sCellValues.cells[12].cellPowerFloat, 4);
     
     memcpy(&matlabBuffer[28], &psoValues.pBestFloat   [ 8], 4);
     memcpy(&matlabBuffer[32], &psoValues.pBestFloat   [ 9], 4);
-    memcpy(&matlabBuffer[36], &psoValues.pBestFloat   [10], 4);
+//    memcpy(&matlabBuffer[36], &psoValues.pBestFloat   [10], 4);
+    memcpy(&matlabBuffer[36], &psoValues.pBestFloat   [12], 4);
     memcpy(&matlabBuffer[40], &psoValues.gBestFloat       , 4);
     memcpy(&matlabBuffer[44], &psoValues.particleSpeed[ 8], 4);
     memcpy(&matlabBuffer[48], &psoValues.particleSpeed[ 9], 4);
-    memcpy(&matlabBuffer[52], &psoValues.particleSpeed[10], 4);
+//    memcpy(&matlabBuffer[52], &psoValues.particleSpeed[10], 4);
+    memcpy(&matlabBuffer[52], &psoValues.particleSpeed[12], 4);
     
     AddDataToMatlabFifo(matlabBuffer, 56);
     
@@ -398,9 +409,10 @@ void ParticleSwarmOptimization (void)
       }
     }
     
-    SetPot(2, 0, potIndexValue[ 8]);
-    SetPot(2, 1, potIndexValue[ 9]);
-    SetPot(2, 2, potIndexValue[10]);
+    SetPot(8, potIndexValue[ 8]);
+    SetPot(9, potIndexValue[ 9]);
+//    SetPot(10, potIndexValue[10]);
+    SetPot(12, potIndexValue[12]);
     
     if (iteration < psoValues.maxIteration)
     {

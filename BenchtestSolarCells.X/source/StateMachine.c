@@ -260,22 +260,24 @@ void StateInit(void)
 //  InitPot(0);
 //  InitPot(1);
   InitPot(2);
-//  InitPot(3);
+  InitPot(3);
   for (i = 0; i < 16; i++)
   {
     potIndexValue[i] = 0;
   }
   
   SetPotAllUnits(2, potIndexValue[0]);
+  SetPotAllUnits(3, potIndexValue[0]);
   
   // Init LED driver PCA9685
   InitLedDriver();
   
   InitRandomValue();
-//  SetLedDutyCycle( 0, 200);
-//  SetLedDutyCycle( 1, 200);
-//  SetLedDutyCycle( 2, 200);
-//  SetLedDutyCycle( 3, 200);
+  
+  SetLedDutyCycle( 0, 200);
+  SetLedDutyCycle( 1, 200);
+  SetLedDutyCycle( 2, 200);
+  SetLedDutyCycle( 3, 200);
   
 //  SetLedDutyCycle( 4, 200);
 //  SetLedDutyCycle( 5, 200);
@@ -287,10 +289,10 @@ void StateInit(void)
 //  SetLedDutyCycle(10, 200);
 //  SetLedDutyCycle(11, 200);
   
-  SetLedDutyCycle(12, 100);
-  SetLedDutyCycle(13, 100);
-  SetLedDutyCycle(14, 100);
-  SetLedDutyCycle(15, 100);
+  SetLedDutyCycle(12, 200);
+  SetLedDutyCycle(13, 200);
+  SetLedDutyCycle(14, 200);
+  SetLedDutyCycle(15, 200);
 
 }
 
@@ -501,10 +503,10 @@ void StateCompute(void)
       ComputeCellPower(10, potIndexValue[0]);
       ComputeCellPower(11, potIndexValue[0]);
 
-//      ComputeCellPower(12, potIndexValue[0]);
-//      ComputeCellPower(13, potIndexValue[0]);
-//      ComputeCellPower(14, potIndexValue[0]);
-//      ComputeCellPower(15, potIndexValue[0]);
+      ComputeCellPower(12, potIndexValue[0]);
+      ComputeCellPower(13, potIndexValue[0]);
+      ComputeCellPower(14, potIndexValue[0]);
+      ComputeCellPower(15, potIndexValue[0]);
       
       Caracterization();
     }
@@ -512,7 +514,8 @@ void StateCompute(void)
     {
       ComputeCellPower( 8, potIndexValue[ 8]);
       ComputeCellPower( 9, potIndexValue[ 9]);
-      ComputeCellPower(10, potIndexValue[10]);
+//      ComputeCellPower(10, potIndexValue[10]);
+      ComputeCellPower(12, potIndexValue[12]);
       
 //      UINT32 coreTickRate = Timer.Tic(1500, SCALE_US);
       ParticleSwarmOptimization();
