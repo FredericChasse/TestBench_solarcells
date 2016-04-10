@@ -40,6 +40,8 @@ BOOL  oSendData       = 0
      ,oMultiUnitDone  = 0
      ;
 
+UINT16 dutyCycle = 300;
+
 UINT32 cellVoltageRaw [16] = {0};
 
 struct sAllCells sCellValues = {0};
@@ -63,6 +65,9 @@ UINT16 nSamples = 0;
 extern sUartLineBuffer_t buffer;
 
 extern UINT32 iteration;
+
+extern sPsoValues_t psoValues;
+extern sMultiUnitValues_t multiUnitValues;
 
 extern float sinus[2][15];
 
@@ -254,7 +259,7 @@ void StateInit(void)
   
   START_INTERRUPTS;
   
-  InitRandomValue();
+//  InitRandomValue();
   
 //  // Init digital potentiometers AD8403
 //  InitPot(0);
@@ -274,25 +279,27 @@ void StateInit(void)
   
   InitRandomValue();
   
-  SetLedDutyCycle( 0, 200);
-  SetLedDutyCycle( 1, 200);
-  SetLedDutyCycle( 2, 200);
-  SetLedDutyCycle( 3, 200);
+//  UINT16 dutyCycle = 400;
   
-//  SetLedDutyCycle( 4, 200);
-//  SetLedDutyCycle( 5, 200);
-//  SetLedDutyCycle( 6, 200);
-//  SetLedDutyCycle( 7, 200);
+  SetLedDutyCycle( 0, dutyCycle);
+  SetLedDutyCycle( 1, dutyCycle);
+  SetLedDutyCycle( 2, dutyCycle);
+  SetLedDutyCycle( 3, dutyCycle);
   
-//  SetLedDutyCycle( 8, 200);
-//  SetLedDutyCycle( 9, 200);
-//  SetLedDutyCycle(10, 200);
-//  SetLedDutyCycle(11, 200);
+//  SetLedDutyCycle( 4, dutyCycle);
+//  SetLedDutyCycle( 5, dutyCycle);
+//  SetLedDutyCycle( 6, dutyCycle);
+//  SetLedDutyCycle( 7, dutyCycle);
   
-  SetLedDutyCycle(12, 200);
-  SetLedDutyCycle(13, 200);
-  SetLedDutyCycle(14, 200);
-  SetLedDutyCycle(15, 200);
+//  SetLedDutyCycle( 8, dutyCycle);
+//  SetLedDutyCycle( 9, dutyCycle);
+//  SetLedDutyCycle(10, dutyCycle);
+//  SetLedDutyCycle(11, dutyCycle);
+  
+  SetLedDutyCycle(12, dutyCycle);
+  SetLedDutyCycle(13, dutyCycle);
+  SetLedDutyCycle(14, dutyCycle);
+  SetLedDutyCycle(15, dutyCycle);
 
 }
 
@@ -359,7 +366,7 @@ void StateAcq(void)
         
         oAdcReady       = 0;
       }
-      else if (buffer.buffer[0] == 'p')       // PSO mode
+      else if ( (buffer.buffer[0] == 'p') || (buffer.buffer[0] == 'P') )      // PSO mode
       {
         oMatlabReady    = 1;
         
@@ -375,13 +382,22 @@ void StateAcq(void)
         
         nSamples        = 0;
         
-        InitRandomValue();
+//        InitRandomValue();
         
         SetPotInitialCondition();
         
         oAdcReady       = 0;
+        
+        if (buffer.buffer[0] == 'P')
+        {
+          psoValues.oDoPerturb = 1;
+        }
+        else
+        {
+          psoValues.oDoPerturb = 0;
+        }
       }
-      else if (buffer.buffer[0] == 'm')       // Multi-Unit mode
+      else if ( (buffer.buffer[0] == 'm') || (buffer.buffer[0] == 'M') )       // Multi-Unit mode
       {
         LED1_OFF;
         LED2_OFF;
@@ -403,6 +419,15 @@ void StateAcq(void)
         SetPotInitialCondition();
         
         oAdcReady       = 0;
+        
+        if (buffer.buffer[0] == 'M')
+        {
+          multiUnitValues.oDoPerturb = 1;
+        }
+        else
+        {
+          multiUnitValues.oDoPerturb = 0;
+        }
       }
       else if (buffer.buffer[0] == 's')       // Stop current mode. Reset and wait for new command
       {
@@ -441,6 +466,17 @@ void StateAcq(void)
         oPsoMode        = 0;
         oMultiUnitMode  = 0;
         oCaracMode      = 1;
+        
+//        UINT16 dutyCycle = 150;
+        
+        SetLedDutyCycle( 0, dutyCycle);
+        SetLedDutyCycle( 1, dutyCycle);
+        SetLedDutyCycle( 2, dutyCycle);
+        SetLedDutyCycle( 3, dutyCycle);
+        SetLedDutyCycle(12, dutyCycle);
+        SetLedDutyCycle(13, dutyCycle);
+        SetLedDutyCycle(14, dutyCycle);
+        SetLedDutyCycle(15, dutyCycle);
       }
     }
   }
@@ -479,6 +515,7 @@ void StateSendData(void)
 void StateCompute(void)
 {  
   oNewSample = 0;
+  UINT8 i;
   
   if (nSamples >= N_SAMPLES_PER_ADC_READ)
   {
@@ -512,10 +549,14 @@ void StateCompute(void)
     }
     else if (oPsoMode)
     {
-      ComputeCellPower( 8, potIndexValue[ 8]);
-      ComputeCellPower( 9, potIndexValue[ 9]);
-//      ComputeCellPower(10, potIndexValue[10]);
-      ComputeCellPower(12, potIndexValue[12]);
+      for (i = 0; i < psoValues.nParticles; i++)
+      {
+        ComputeCellPower(psoValues.particleIndex[i], potIndexValue[psoValues.particleIndex[i]]);
+      }
+//      ComputeCellPower(psoValues.particleIndex[0], potIndexValue[psoValues.particleIndex[0]]);
+//      ComputeCellPower(psoValues.particleIndex[1], potIndexValue[psoValues.particleIndex[1]]);
+////      ComputeCellPower(10, potIndexValue[10]);
+//      ComputeCellPower(psoValues.particleIndex[2], potIndexValue[psoValues.particleIndex[2]]);
       
 //      UINT32 coreTickRate = Timer.Tic(1500, SCALE_US);
       ParticleSwarmOptimization();
@@ -524,8 +565,8 @@ void StateCompute(void)
     }
     else if (oMultiUnitMode)
     {
-      ComputeCellPower( 9, potIndexValue[ 9]);
-      ComputeCellPower(10, potIndexValue[10]);
+      ComputeCellPower(multiUnitValues.unitIndex[0], potIndexValue[multiUnitValues.unitIndex[0]]);
+      ComputeCellPower(multiUnitValues.unitIndex[1], potIndexValue[multiUnitValues.unitIndex[1]]);
       MultiUnit();
     }
     else

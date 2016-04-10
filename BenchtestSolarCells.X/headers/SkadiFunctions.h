@@ -47,6 +47,14 @@ void LedToggle();
 void SetPwmSkadi();
 
 /**************************************************************
+ * Function name  : SetAllPwmSkadi
+ * Purpose        : Set the duty cycle of all LEDs
+ * Arguments      : 1 : duty cycle * 10
+ * Returns        : None.
+ *************************************************************/
+void SetAllPwmSkadi();
+
+/**************************************************************
  * Function name  : SetPotSkadi
  * Purpose        : Set the value of a potentiometer
  * Arguments      : 1 : Pot num (0 - 3), 2 : index (0 - 3), 3 : pot value (0 - 255)

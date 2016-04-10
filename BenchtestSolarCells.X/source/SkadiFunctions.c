@@ -89,6 +89,34 @@ void ClearScreen(sSkadi_t *skadi, sSkadiArgs_t args)
 
 
 /**************************************************************
+ * Function name  : SetAllPwmSkadi
+ * Purpose        : Set the duty cycle of all LEDs
+ * Arguments      : 1 : duty cycle * 10
+ * Returns        : None.
+ *************************************************************/
+void SetAllPwmSkadi(sSkadi_t *skadi, sSkadiArgs_t args)
+{
+  sUartLineBuffer_t buffer;
+  UINT8 i;
+
+  UINT16 pwm = atoi(args.elements[0]);   // Convert argument to int
+
+  if (pwm <= 1000)
+  {
+    for (i = 0; i < 16; i++)
+    {
+      SetLedDutyCycle(i, pwm);
+    }
+  }
+  else
+  {
+    buffer.length = sprintf(buffer.buffer, "Mauvais argument!\r\n\n");
+    Uart.PutTxFifoBuffer(UART3, &buffer);
+  }
+}
+
+
+/**************************************************************
  * Function name  : SetPwmSkadi
  * Purpose        : Set the duty cycle of a LED
  * Arguments      : 1 : LED num (0 - 15), 2 : duty cycle * 10

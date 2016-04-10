@@ -30,9 +30,12 @@ extern BOOL  oCaracMode
             ,oPsoDone
             ;
 
+UINT16 perturbation = 300;
+
 extern UINT8 matlabPacketSize;
 
 extern UINT8 potIndexValue[16];
+UINT8 potPreviousIndexValue[16];
 
 extern const float potRealValues[256];
 extern const float potRealValuesInverse[256];
@@ -41,6 +44,9 @@ UINT32 iteration = 0;
 
 UINT16 randValue = 0;
 
+UINT8 testUINT8 = 0;
+float testFLOAT = 0;
+
 //sTustinValue  gradError   = {0}
 //             ,gradError_p = {0}
 //             ;
@@ -48,40 +54,56 @@ UINT16 randValue = 0;
 sMultiUnitValues_t multiUnitValues = 
 {
 //  .alphaGain            = 3900000000
-  .deltaFloat           = 39.21568627450980392156862745098
- ,.deltaByte            = 10
+//  .deltaFloat           = 39.21568627450980392156862745098
+// ,.deltaByte            = 10
+  .deltaFloat           = 54.901960784314
+ ,.deltaByte            = 14
  ,.gradError_p          = {0}
  ,.gradError            = {0}
  ,.initialInputFloat    = 442.1568627450980392156862745098
  ,.initialInputByte     = 100
  ,.sampleTime           = 0.08
- ,.alphaDividedByDelta  = 10000000
- ,.maxIteration         = 100
+ ,.alphaDividedByDelta  = 5000000
+ ,.maxIteration         = 301
+ ,.perturbIteration     = 100
+ ,.oChangeHasOccured    = 0
+ ,.oDoPerturb           = 0    
+ ,.unitIndex            = {0}
 };
 
 sPsoValues_t psoValues = 
 {
-   .c1            = 1
-  ,.c1i           = 1
-  ,.c1f           = 2.5
-  ,.c2            = 2
-  ,.c2i           = 2
-  ,.c2f           = 0
-  ,.gBestFloat    = 0
-  ,.gBestByte     = 0
-  ,.nParticles    = 3
-  ,.omega         = 0.5
-  ,.maxObjFnc     = 0
-  ,.objFnc        = {0}
-  ,.particleIndex = {0}
-  ,.pBestByte     = {0}
-  ,.pBestFloat    = {0}
-  ,.particleSpeed = {0}
-  ,.rMaxByte      = 255
-  ,.rMaxFloat     = MAX_POT_VALUE
-  ,.rMinByte      = 0
-  ,.rMinFloat     = WIPER_VALUE
-  ,.maxIteration  = 56
+   .c1                = 1
+  ,.c1i               = 1
+  ,.c1f               = 2.5
+  ,.c1Delta           = 0
+  ,.c2                = 1.5
+  ,.c2i               = 1.5
+  ,.c2f               = 0
+  ,.c2Delta           = 0
+  ,.gBestFloat        = 0
+  ,.gBestByte         = 0
+  ,.nParticles        = 3
+//  ,.omega             = 0.5
+  ,.omega             = 0.6
+  ,.maxObjFnc         = 0
+  ,.objFnc            = {0}
+  ,.previousObjFnc    = {0}
+  ,.particleIndex     = {0}
+  ,.pBestByte         = {0}
+  ,.pBestFloat        = {0}
+  ,.particleSpeed     = {0}
+  ,.rMaxByte          = 255
+  ,.rMaxFloat         = MAX_POT_VALUE
+  ,.rMinByte          = 0
+  ,.rMinFloat         = WIPER_VALUE
+//  ,.maxIteration      = 56
+  ,.maxIteration      = 224
+  ,.perturbIteration  = 100
+  ,.oChangeHasOccured = 0
+  ,.oDoPerturb        = 0
+  ,.detectPrecision   = 0.05
+//  ,.detectPrecision   = 0.02
 };
 
 //==============================================================================
@@ -98,12 +120,21 @@ void InitRandomValue(void)
 //  *value = temp * 1.5259021896696421759365224689097e-5;
   
   randValue = 0xFFFF & ReadCoreTimer();
+  randValue = ((randValue & 0x03) << 14)
+            | ((randValue & 0x04) << 11) | ((randValue & 0x08)   <<  9)
+            | ((randValue & 0xF0) <<  4) | ((randValue & 0xFF00) >>  8)
+            ;
+  
+  randValue &= 0xACE1;
+//  randValue = 0xACE1;
 }
 
 /*
- *        MSB                                                                       LSB
- *       _______________________________________________________________________________
- *  <---| 15 | 14 | 13 | 12 | 11 | 10 |  9 |  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |<------
+ *  ____________________________________________________________________________________________
+ * |                                                                                            |
+ * |      MSB                                                                       LSB         |
+ * |     _______________________________________________________________________________        |
+ *  --->| 15 | 14 | 13 | 12 | 11 | 10 |  9 |  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |--->   |
  *      |____|____|____|____|____|____|____|____|____|____|____|____|____|____|____|____|       |
  *        |    |         |                                             |   _____                |
  *        |    |         |                                              ->| XOR |__             |
@@ -114,9 +145,15 @@ void InitRandomValue(void)
  */
 void GetRandomValue(float *value, float max)
 {
-  randValue = (randValue << 1) |  ( (((randValue >> 3 ) & 1) ^ ((randValue >> 12) & 1)) 
-                                  ^ (((randValue >> 15) & 1) ^ ((randValue >> 14) & 1)) 
-                                  );
+  UINT16 bitValue =   (((randValue >> 3 ) & 1) ^ ((randValue >> 12) & 1)) 
+                    ^ (((randValue >> 15) & 1) ^ ((randValue >> 14) & 1));
+//  UINT16 bitValue = ( (randValue >> 0 ) ^ (randValue >> 2) ^ (randValue >> 3) ^ (randValue >> 5) ) & 1;
+  
+  randValue = (randValue >> 1) | (bitValue << 15);
+  
+//  randValue = (randValue << 1) |  ( (((randValue >> 3 ) & 1) ^ ((randValue >> 12) & 1)) 
+//                                  ^ (((randValue >> 15) & 1) ^ ((randValue >> 14) & 1)) 
+//                                  );
   
   *value = (float) randValue * 1.5259021896696421759365224689097e-5 * max;
 }
@@ -143,12 +180,15 @@ void SetPotInitialCondition (void)
   {
     matlabPacketSize = MATLAB_PACKET_SIZE_PSO;
     
+//    psoValues.nParticles = 3;
+    psoValues.nParticles = 4;
+    
     potDelta = (MAX_POT_VALUE - WIPER_VALUE) / (psoValues.nParticles + 1);
     
-    psoValues.particleIndex[0] = 8;
-    psoValues.particleIndex[1] = 9;
-//    psoValues.particleIndex[2] = 10;
-    psoValues.particleIndex[2] = 12;
+    psoValues.particleIndex[0] = 7 + 3;
+    psoValues.particleIndex[1] = 7 + 5;
+    psoValues.particleIndex[2] = 7 + 6;
+    psoValues.particleIndex[3] = 7 + 7;
     
     for (i = 0; i < psoValues.nParticles; i++)
     {
@@ -157,51 +197,77 @@ void SetPotInitialCondition (void)
 //      GetRandomValue(&value, 255);  // Get random value between 0 and 255
 //      potIndexValue[index] = (UINT8) (value + 0.5);
       
-      GetRandomValue(&value, 2*potDelta);  // Get random value between 0 and 2*potDelta
-      value -= potDelta;  // random value between [-potDelta, potDelta]
+//      GetRandomValue(&value, 2*potDelta);  // Get random value between 0 and 2*potDelta
+//      value -= potDelta;  // random value between [-potDelta, potDelta]
+//      value = WIPER_VALUE + (i + 1)*potDelta + value;
       
-      value = WIPER_VALUE + (i + 1)*potDelta + value;
+      GetRandomValue(&value, MAX_POT_VALUE - WIPER_VALUE);  // Get random value between 0 and MAX_POT_VALUE - WIPER_VALUE
+      value += WIPER_VALUE;  // random value between [WIPERVALUE, MAX_POT_VALUE]
+      
       potIndexValue[index] = ComputePotValueFloat2Dec(value);
+      potPreviousIndexValue[index] = 0;
       
       psoValues.pBestByte[index]      = potIndexValue[index];
       psoValues.objFnc[index]         = 0;
+      psoValues.previousObjFnc[index] = 0;
       psoValues.pBestFloat[index]     = potRealValues[potIndexValue[index]];
       psoValues.particleSpeed[index]  = 0;
     }
     
-    SetPot(8, potIndexValue[ 8]);
-    SetPot(9, potIndexValue[ 9]);
-//    SetPot(10, potIndexValue[10]);
-    SetPot(12, potIndexValue[12]);
+    for (i = 0; i < psoValues.nParticles; i++)
+    {
+      SetPot(psoValues.particleIndex[i], potIndexValue[psoValues.particleIndex[i]]);
+      psoValues.pBestByte[psoValues.particleIndex[i]] = potIndexValue[psoValues.particleIndex[i]];
+      psoValues.pBestFloat[psoValues.particleIndex[i]] = potRealValues[potIndexValue[psoValues.particleIndex[i]]];
+    }
+//    SetPot(psoValues.particleIndex[0], potIndexValue[psoValues.particleIndex[0]]);
+//    SetPot(psoValues.particleIndex[1], potIndexValue[psoValues.particleIndex[1]]);
+////    SetPot(10, potIndexValue[10]);
+//    SetPot(psoValues.particleIndex[2], potIndexValue[psoValues.particleIndex[2]]);
     
-    psoValues.pBestByte [ 8] = potIndexValue[ 8];
-    psoValues.pBestByte [ 9] = potIndexValue[ 9];
-//    psoValues.pBestByte [10] = potIndexValue[10];
-    psoValues.pBestByte [12] = potIndexValue[12];
+//    psoValues.pBestByte [psoValues.particleIndex[0]] = potIndexValue[psoValues.particleIndex[0]];
+//    psoValues.pBestByte [psoValues.particleIndex[1]] = potIndexValue[psoValues.particleIndex[1]];
+////    psoValues.pBestByte [10] = potIndexValue[10];
+//    psoValues.pBestByte [psoValues.particleIndex[2]] = potIndexValue[psoValues.particleIndex[2]];
     
-    psoValues.pBestFloat[ 8] = potRealValues[potIndexValue[ 8]];
-    psoValues.pBestFloat[ 9] = potRealValues[potIndexValue[ 9]];
-//    psoValues.pBestFloat[10] = potRealValues[potIndexValue[10]];
-    psoValues.pBestFloat[12] = potRealValues[potIndexValue[12]];
+//    psoValues.pBestFloat[psoValues.particleIndex[0]] = potRealValues[potIndexValue[psoValues.particleIndex[0]]];
+//    psoValues.pBestFloat[psoValues.particleIndex[1]] = potRealValues[potIndexValue[psoValues.particleIndex[1]]];
+////    psoValues.pBestFloat[10] = potRealValues[potIndexValue[10]];
+//    psoValues.pBestFloat[psoValues.particleIndex[2]] = potRealValues[potIndexValue[psoValues.particleIndex[2]]];
     
     psoValues.maxObjFnc = 0;
     psoValues.gBestByte = 0;
     psoValues.gBestFloat = WIPER_VALUE;
+    
+    psoValues.oChangeHasOccured = 0;
+    psoValues.oDoPerturb = 0;
+    
+    psoValues.c1 = psoValues.c1i;
+    psoValues.c2 = psoValues.c2i;
+    
+    psoValues.c1Delta = (psoValues.c1f - psoValues.c1i) / psoValues.maxIteration;
+    psoValues.c2Delta = (psoValues.c2f - psoValues.c2i) / psoValues.maxIteration;
   }
   else if (oMultiUnitMode)
   {
     matlabPacketSize = MATLAB_PACKET_SIZE_MULTI_UNIT;
     
-    potIndexValue[ 9] = multiUnitValues.initialInputByte;
-    potIndexValue[10] = potIndexValue[9] + multiUnitValues.deltaByte;
+    multiUnitValues.unitIndex[0] = 7 + 6;
+    multiUnitValues.unitIndex[1] = 7 + 2;
+    
+    potIndexValue[multiUnitValues.unitIndex[0]] = multiUnitValues.initialInputByte;
+    potIndexValue[multiUnitValues.unitIndex[1]] = potIndexValue[multiUnitValues.unitIndex[0]] + multiUnitValues.deltaByte;
     
     multiUnitValues.gradError_p.currentValue = 0;
     multiUnitValues.gradError_p.previousValue = 0;
     multiUnitValues.gradError.previousValue = 0;
     multiUnitValues.gradError.currentValue = multiUnitValues.initialInputFloat;
     
-    SetPot(9, potIndexValue[ 9]);
-    SetPot(10, potIndexValue[10]);
+    SetPot(multiUnitValues.unitIndex[0], potIndexValue[multiUnitValues.unitIndex[0]]);
+    SetPot(multiUnitValues.unitIndex[1], potIndexValue[multiUnitValues.unitIndex[1]]);
+    
+    multiUnitValues.oChangeHasOccured = 0;
+    multiUnitValues.oDoPerturb = 0;
   }
 }
 
@@ -257,16 +323,18 @@ void MultiUnit (void)
     fIteration = iteration;
     memcpy(&matlabBuffer[ 0], &fIteration, 4);
     
-    memcpy(&matlabBuffer[ 4], &potRealValues[potIndexValue[ 9]], 4);
-    memcpy(&matlabBuffer[ 8], &potRealValues[potIndexValue[10]], 4);
+    memcpy(&matlabBuffer[ 4], &potRealValues[potIndexValue[multiUnitValues.unitIndex[0]]], 4);
+    memcpy(&matlabBuffer[ 8], &potRealValues[potIndexValue[multiUnitValues.unitIndex[1]]], 4);
     
-    memcpy(&matlabBuffer[12], &sCellValues.cells[ 9].cellPowerFloat, 4);
-    memcpy(&matlabBuffer[16], &sCellValues.cells[10].cellPowerFloat, 4);
+    memcpy(&matlabBuffer[12], &sCellValues.cells[multiUnitValues.unitIndex[0]].cellPowerFloat, 4);
+    memcpy(&matlabBuffer[16], &sCellValues.cells[multiUnitValues.unitIndex[1]].cellPowerFloat, 4);
     
     AddDataToMatlabFifo(matlabBuffer, 20);
     
     // Multi-Unit algorithm
-    gradError = sCellValues.cells[10].cellPowerFloat - sCellValues.cells[9].cellPowerFloat;
+    gradError = sCellValues.cells[multiUnitValues.unitIndex[1]].cellPowerFloat 
+              - sCellValues.cells[multiUnitValues.unitIndex[0]].cellPowerFloat
+              ;
     
     multiUnitValues.gradError_p.previousValue = multiUnitValues.gradError_p.currentValue;
 //    multiUnitValues.gradError_p.currentValue  = (sCellValues.cells[10].cellPowerFloat - sCellValues.cells[9].cellPowerFloat) * multiUnitValues.alphaDividedByDelta;
@@ -286,18 +354,45 @@ void MultiUnit (void)
     
     potValue = ComputePotValueFloat2Dec(multiUnitValues.gradError.currentValue);
     
-    if ( (potValue + multiUnitValues.deltaByte) > 255 )
+//    if ( (potValue + multiUnitValues.deltaByte) > 255 )
+//    {
+//      potValue = 255 - multiUnitValues.deltaByte;
+//      multiUnitValues.gradError.currentValue = potRealValues[potValue];
+//    }
+    if ( (potValue + multiUnitValues.deltaByte/2) > 255 )
     {
-      potValue = 255 - multiUnitValues.deltaByte;
-//      ComputePotValueDec2Float(potValue, &multiUnitValues.gradError.currentValue);
+      potValue = 255 - multiUnitValues.deltaByte/2;
+      multiUnitValues.gradError.currentValue = potRealValues[potValue];
+    }
+    if ( ((float) potValue - (float) multiUnitValues.deltaByte/2) < 0 )
+    {
+      potValue = multiUnitValues.deltaByte/2;
       multiUnitValues.gradError.currentValue = potRealValues[potValue];
     }
     
-    potIndexValue[ 9] = potValue;
-    potIndexValue[10] = potIndexValue[9] + multiUnitValues.deltaByte;
+//    potIndexValue[multiUnitValues.unitIndex[0]] = potValue;
+//    potIndexValue[multiUnitValues.unitIndex[1]] = potIndexValue[multiUnitValues.unitIndex[0]] + multiUnitValues.deltaByte;
+    potIndexValue[multiUnitValues.unitIndex[0]] = potValue - multiUnitValues.deltaByte/2;
+    potIndexValue[multiUnitValues.unitIndex[1]] = potValue + multiUnitValues.deltaByte/2;
     
-    SetPot(9, potIndexValue[ 9]);
-    SetPot(10, potIndexValue[10]);
+    SetPot(multiUnitValues.unitIndex[0], potIndexValue[multiUnitValues.unitIndex[0]]);
+    SetPot(multiUnitValues.unitIndex[1], potIndexValue[multiUnitValues.unitIndex[1]]);
+    
+    if (iteration == multiUnitValues.perturbIteration)
+    {
+      if (multiUnitValues.oDoPerturb)
+      {
+//        UINT16 perturbation = 100;
+        SetLedDutyCycle( 0, perturbation);
+        SetLedDutyCycle( 1, perturbation);
+        SetLedDutyCycle( 2, perturbation);
+        SetLedDutyCycle( 3, perturbation);
+        SetLedDutyCycle(12, perturbation);
+        SetLedDutyCycle(13, perturbation);
+        SetLedDutyCycle(14, perturbation);
+        SetLedDutyCycle(15, perturbation);
+      }
+    }
     
     if (iteration <= multiUnitValues.maxIteration)
     {
@@ -318,11 +413,11 @@ void MultiUnit (void)
 
 void ParticleSwarmOptimization (void)
 {
-  UINT8 matlabBuffer[56];
+  UINT8 matlabBuffer[psoValues.nParticles*8 + 4];
   UINT8 i;
   UINT8 index;
   float fIteration;
-  float rand1, rand2;
+  float rand1, rand2, rand3;
   
   if (!oPsoDone)
   {
@@ -330,27 +425,38 @@ void ParticleSwarmOptimization (void)
     fIteration = iteration;
     memcpy(&matlabBuffer[ 0], &fIteration, 4);
     
-    memcpy(&matlabBuffer[ 4], &potRealValues[potIndexValue[ 8]], 4);
-    memcpy(&matlabBuffer[ 8], &potRealValues[potIndexValue[ 9]], 4);
-//    memcpy(&matlabBuffer[12], &potRealValues[potIndexValue[10]], 4);
-    memcpy(&matlabBuffer[12], &potRealValues[potIndexValue[12]], 4);
+    for (i = 0; i < psoValues.nParticles; i++)
+    {
+      memcpy(&matlabBuffer[i*4 + 4], &potRealValues[potIndexValue[psoValues.particleIndex[i]]], 4);
+      memcpy(&matlabBuffer[i*4 + 4*psoValues.nParticles + 4], &sCellValues.cells[psoValues.particleIndex[i]].cellPowerFloat, 4);
+//      memcpy(&matlabBuffer[i*4 + 28], &psoValues.pBestFloat[psoValues.particleIndex[i]], 4);
+//      memcpy(&matlabBuffer[i*4 + 44], &psoValues.particleSpeed[psoValues.particleIndex[i]], 4);
+    }
+//    memcpy(&matlabBuffer[40], &psoValues.gBestFloat       , 4);
     
-    memcpy(&matlabBuffer[16], &sCellValues.cells[ 8].cellPowerFloat, 4);
-    memcpy(&matlabBuffer[20], &sCellValues.cells[ 9].cellPowerFloat, 4);
-//    memcpy(&matlabBuffer[24], &sCellValues.cells[10].cellPowerFloat, 4);
-    memcpy(&matlabBuffer[24], &sCellValues.cells[12].cellPowerFloat, 4);
+//    memcpy(&matlabBuffer[ 4], &potRealValues[potIndexValue[psoValues.particleIndex[0]]], 4);
+//    memcpy(&matlabBuffer[ 8], &potRealValues[potIndexValue[psoValues.particleIndex[1]]], 4);
+////    memcpy(&matlabBuffer[12], &potRealValues[potIndexValue[10]], 4);
+//    memcpy(&matlabBuffer[12], &potRealValues[potIndexValue[psoValues.particleIndex[2]]], 4);
     
-    memcpy(&matlabBuffer[28], &psoValues.pBestFloat   [ 8], 4);
-    memcpy(&matlabBuffer[32], &psoValues.pBestFloat   [ 9], 4);
-//    memcpy(&matlabBuffer[36], &psoValues.pBestFloat   [10], 4);
-    memcpy(&matlabBuffer[36], &psoValues.pBestFloat   [12], 4);
-    memcpy(&matlabBuffer[40], &psoValues.gBestFloat       , 4);
-    memcpy(&matlabBuffer[44], &psoValues.particleSpeed[ 8], 4);
-    memcpy(&matlabBuffer[48], &psoValues.particleSpeed[ 9], 4);
-//    memcpy(&matlabBuffer[52], &psoValues.particleSpeed[10], 4);
-    memcpy(&matlabBuffer[52], &psoValues.particleSpeed[12], 4);
+//    memcpy(&matlabBuffer[16], &sCellValues.cells[psoValues.particleIndex[0]].cellPowerFloat, 4);
+//    memcpy(&matlabBuffer[20], &sCellValues.cells[psoValues.particleIndex[1]].cellPowerFloat, 4);
+////    memcpy(&matlabBuffer[24], &sCellValues.cells[10].cellPowerFloat, 4);
+//    memcpy(&matlabBuffer[24], &sCellValues.cells[psoValues.particleIndex[2]].cellPowerFloat, 4);
+
+//    memcpy(&matlabBuffer[28], &psoValues.pBestFloat   [psoValues.particleIndex[0]], 4);
+//    memcpy(&matlabBuffer[32], &psoValues.pBestFloat   [psoValues.particleIndex[1]], 4);
+////    memcpy(&matlabBuffer[36], &psoValues.pBestFloat   [10], 4);
+//    memcpy(&matlabBuffer[36], &psoValues.pBestFloat   [psoValues.particleIndex[2]], 4);
     
-    AddDataToMatlabFifo(matlabBuffer, 56);
+
+//    memcpy(&matlabBuffer[44], &psoValues.particleSpeed[psoValues.particleIndex[0]], 4);
+//    memcpy(&matlabBuffer[48], &psoValues.particleSpeed[psoValues.particleIndex[1]], 4);
+////    memcpy(&matlabBuffer[52], &psoValues.particleSpeed[10], 4);
+//    memcpy(&matlabBuffer[52], &psoValues.particleSpeed[psoValues.particleIndex[2]], 4);
+    
+//    AddDataToMatlabFifo(matlabBuffer, 56);
+    AddDataToMatlabFifo(matlabBuffer, psoValues.nParticles*8 + 4);
     
     // PSO algorithm
     psoValues.maxObjFnc = 0;
@@ -364,6 +470,7 @@ void ParticleSwarmOptimization (void)
         psoValues.pBestByte [index] = potIndexValue[index];
         psoValues.pBestFloat[index] = potRealValues[potIndexValue[index]];
       }
+      psoValues.previousObjFnc[index] = psoValues.objFnc[index];
       psoValues.objFnc[index] = sCellValues.cells[index].cellPowerFloat;
       
       // Gbest
@@ -375,12 +482,44 @@ void ParticleSwarmOptimization (void)
       }
     }
     
-    // Acceleration coefficients
-    psoValues.c1 = (psoValues.c1f - psoValues.c1i)*(iteration / psoValues.maxIteration) + psoValues.c1i;    // Cognitive parameter
-    psoValues.c2 = (psoValues.c2f - psoValues.c2i)*(iteration / psoValues.maxIteration) + psoValues.c2i;    // Social parameter
+//    // Acceleration coefficients
+//    psoValues.c1 = (psoValues.c1f - psoValues.c1i)*(iteration / psoValues.maxIteration) + psoValues.c1i;    // Cognitive parameter
+//    psoValues.c2 = (psoValues.c2f - psoValues.c2i)*(iteration / psoValues.maxIteration) + psoValues.c2i;    // Social parameter
+    
+//    testFLOAT = ABS(psoValues.objFnc[index] - psoValues.previousObjFnc[index])/psoValues.objFnc[index];
+//    testUINT8 = 0;
+    // Detect perturbation
+    if (iteration >= 3)
+    {
+      for (i = 0; i < psoValues.nParticles; i++)
+      {
+        index = psoValues.particleIndex[i];
+        
+        if (potIndexValue[index] == potPreviousIndexValue[index])
+        {
+          float error = (psoValues.objFnc[index] - psoValues.previousObjFnc[index]) / psoValues.objFnc[index];
+          if (error < 0)
+          {
+            error = -error;
+          }
+          if (error >= psoValues.detectPrecision)
+//          if ( (ABS(psoValues.objFnc[index] - psoValues.previousObjFnc[index]) 
+//             /  psoValues.objFnc[index]) 
+//             >= psoValues.detectPrecision 
+//             )
+          {
+            psoValues.oChangeHasOccured = 1;
+            i = psoValues.nParticles + 1;
+          }
+        }
+      }
+    }
+    
+//    fIteration = psoValues.oChangeHasOccured;
+//    memcpy(&matlabBuffer[28], &fIteration, 4);
+//    AddDataToMatlabFifo(matlabBuffer, 56);
     
     // Particles' speed
-    float nextPos;
     
     for (i = 0; i < psoValues.nParticles; i++)
     {
@@ -389,30 +528,116 @@ void ParticleSwarmOptimization (void)
       GetRandomValue(&rand1, 1);  // Get random value between 0 and 1
       GetRandomValue(&rand2, 1);
       
-      psoValues.particleSpeed[index]  = psoValues.omega * psoValues.particleSpeed[index]                                            // Inertia
-                                      + psoValues.c1 * rand1 * (psoValues.pBestFloat[index] - potRealValues[potIndexValue[index]])  // Cognitive behavior
-                                      + psoValues.c2 * rand2 * (psoValues.gBestFloat        - potRealValues[potIndexValue[index]])  // Social behavior
-                                      ;
-      
-      nextPos = potRealValues[potIndexValue[index]] + psoValues.particleSpeed[index];
-      if (nextPos > MAX_POT_VALUE)
+      if (iteration == 0)
       {
-        potIndexValue[index] = 255;
-      }
-      else if (nextPos < WIPER_VALUE)
-      {
-        potIndexValue[index] = 0;
+        GetRandomValue(&rand3, 20);
+        rand3 -= 10;
+        psoValues.particleSpeed[index]  = rand3
+                                        + psoValues.c1 * rand1 * (psoValues.pBestFloat[index] - potRealValues[potIndexValue[index]])  // Cognitive behavior
+                                        + psoValues.c2 * rand2 * (psoValues.gBestFloat        - potRealValues[potIndexValue[index]])  // Social behavior
+                                        ;
       }
       else
       {
-        potIndexValue[index] = ComputePotValueFloat2Dec(nextPos);
+        psoValues.particleSpeed[index]  = psoValues.omega * psoValues.particleSpeed[index]                                            // Inertia
+                                        + psoValues.c1 * rand1 * (psoValues.pBestFloat[index] - potRealValues[potIndexValue[index]])  // Cognitive behavior
+                                        + psoValues.c2 * rand2 * (psoValues.gBestFloat        - potRealValues[potIndexValue[index]])  // Social behavior
+                                        ;
       }
     }
     
-    SetPot(8, potIndexValue[ 8]);
-    SetPot(9, potIndexValue[ 9]);
-//    SetPot(10, potIndexValue[10]);
-    SetPot(12, potIndexValue[12]);
+    // Acceleration coefficients
+    psoValues.c1 = psoValues.c1 + psoValues.c1Delta;    // Cognitive parameter
+    psoValues.c2 = psoValues.c2 + psoValues.c2Delta;    // Social parameter
+    
+    // Particles' positions
+    float nextPos;
+    
+    for (i = 0; i < psoValues.nParticles; i++)
+    {
+      index = psoValues.particleIndex[i];
+      
+      if (!psoValues.oChangeHasOccured)
+      {
+        nextPos = potRealValues[potIndexValue[index]] + psoValues.particleSpeed[index];
+        potPreviousIndexValue[index] = potIndexValue[index];
+        if (nextPos > MAX_POT_VALUE)
+        {
+          potIndexValue[index] = 255;
+        }
+        else if (nextPos < WIPER_VALUE)
+        {
+          potIndexValue[index] = 0;
+        }
+        else
+        {
+          potIndexValue[index] = ComputePotValueFloat2Dec(nextPos);
+        }
+      }
+      else
+      {
+        GetRandomValue(&rand1, 200);  // Get random value between 0 and 100
+        rand1 -= 100;                 // Random between -100 and 100
+        
+        nextPos = potRealValues[potIndexValue[index]] + rand1;
+        potPreviousIndexValue[index] = potIndexValue[index];
+        if (nextPos > MAX_POT_VALUE)
+        {
+          potIndexValue[index] = 255;
+        }
+        else if (nextPos < WIPER_VALUE)
+        {
+          potIndexValue[index] = 0;
+        }
+        else
+        {
+          potIndexValue[index] = ComputePotValueFloat2Dec(nextPos);
+        }
+        
+        psoValues.pBestByte[index]  = potIndexValue[index];
+        psoValues.pBestFloat[index] = potRealValues[potIndexValue[index]];
+        
+        GetRandomValue(&rand1, 20);  // Get random value between 0 and 10
+        rand1 -= 10;                 // Random between -5 and 5
+        
+        psoValues.particleSpeed[index] = rand1;
+      }
+    }
+    
+    if (psoValues.oChangeHasOccured)
+    {
+      psoValues.maxObjFnc = 0;
+      psoValues.gBestByte  = potIndexValue[psoValues.particleIndex[1]];
+      psoValues.gBestFloat = potRealValues[psoValues.gBestByte];
+      psoValues.c1 = psoValues.c1i;
+      psoValues.c2 = psoValues.c2i;
+      psoValues.oChangeHasOccured = 0;
+    }
+    
+    for (i = 0; i < psoValues.nParticles; i++)
+    {
+      SetPot(psoValues.particleIndex[i], potIndexValue[psoValues.particleIndex[i]]);
+    }
+//    SetPot(psoValues.particleIndex[0], potIndexValue[psoValues.particleIndex[0]]);
+//    SetPot(psoValues.particleIndex[1], potIndexValue[psoValues.particleIndex[1]]);
+////    SetPot(10, potIndexValue[10]);
+//    SetPot(psoValues.particleIndex[2], potIndexValue[psoValues.particleIndex[2]]);
+    
+    if (iteration == psoValues.perturbIteration)
+    {
+      if (psoValues.oDoPerturb)
+      {
+//        UINT16 perturbation = 100;
+        SetLedDutyCycle( 0, perturbation);
+        SetLedDutyCycle( 1, perturbation);
+        SetLedDutyCycle( 2, perturbation);
+        SetLedDutyCycle( 3, perturbation);
+        SetLedDutyCycle(12, perturbation);
+        SetLedDutyCycle(13, perturbation);
+        SetLedDutyCycle(14, perturbation);
+        SetLedDutyCycle(15, perturbation);
+      }
+    }
     
     if (iteration < psoValues.maxIteration)
     {

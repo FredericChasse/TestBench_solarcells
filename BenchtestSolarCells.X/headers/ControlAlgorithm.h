@@ -51,6 +51,10 @@ typedef struct sMultiUnitValues
   float sampleTime;
   float alphaDividedByDelta;
   const UINT16 maxIteration;
+  const UINT16 perturbIteration;
+  BOOL  oChangeHasOccured;
+  BOOL  oDoPerturb;
+  UINT8 unitIndex[2];
 } sMultiUnitValues_t;
 
 typedef struct sPsoValues
@@ -58,27 +62,35 @@ typedef struct sPsoValues
   float c1;
   const float c1f;
   const float c1i;
+  float c1Delta;
   float c2;
   const float c2f;
   const float c2i;
+  float c2Delta;
   const float omega;
   const UINT8 rMaxByte;
   const UINT8 rMinByte;
   const float rMaxFloat;
   const float rMinFloat;
-  const UINT8 nParticles;
+  UINT8 nParticles;
   UINT8 pBestByte[16];
   float pBestFloat[16];
   UINT8 particleIndex[16];
+  float previousObjFnc[16];
   float objFnc[16];
   float maxObjFnc;
   UINT8 gBestByte;
   float gBestFloat;
   const UINT16 maxIteration;
+  const UINT32 perturbIteration;
   float particleSpeed[16];
+  BOOL  oChangeHasOccured;
+  BOOL  oDoPerturb;
+  float detectPrecision;
 } sPsoValues_t;
 
-#define MAX(x, y)   (x > y ? x : y)
+#define MAX(x, y)   (x >  y ? x :  y)
+#define ABS(x)      (x >= 0 ? x : -x)
 
 
 //==============================================================================
