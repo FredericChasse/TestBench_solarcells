@@ -40,7 +40,7 @@ BOOL  oSendData       = 0
      ,oMultiUnitDone  = 0
      ;
 
-UINT16 dutyCycle = 300;
+UINT16 dutyCycle = 500;
 
 UINT32 cellVoltageRaw [16] = {0};
 
@@ -75,6 +75,8 @@ float testFloat = 0;
 UINT32 testUint32 = 0;
 INT32 testInt32 = 0;
 UINT8 testUint8 = 0;
+
+BOOL oFirstTimeCallFromMatlab = 1;
 
 //==============================================================================
 //	STATES OF STATE MACHINE
@@ -346,6 +348,11 @@ void StateAcq(void)
     err = Uart.GetRxFifoBuffer(UART6, &buffer, FALSE);    // put received data in uart6Data
     if (err >= 0)                                         // If no error occured
     {
+      if (oFirstTimeCallFromMatlab)
+      {
+        oFirstTimeCallFromMatlab = 0;
+        InitRandomValue();
+      }
       if      (buffer.buffer[0] == 'c')       // Caracterization mode
       {
         oMatlabReady    = 1;

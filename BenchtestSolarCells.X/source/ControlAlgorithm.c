@@ -63,7 +63,7 @@ sMultiUnitValues_t multiUnitValues =
  ,.initialInputFloat    = 442.1568627450980392156862745098
  ,.initialInputByte     = 100
  ,.sampleTime           = 0.08
- ,.alphaDividedByDelta  = 5000000
+ ,.alphaDividedByDelta  = 1500000
  ,.maxIteration         = 301
  ,.perturbIteration     = 100
  ,.oChangeHasOccured    = 0
@@ -180,15 +180,15 @@ void SetPotInitialCondition (void)
   {
     matlabPacketSize = MATLAB_PACKET_SIZE_PSO;
     
-//    psoValues.nParticles = 3;
-    psoValues.nParticles = 4;
+    psoValues.nParticles = 3;
+//    psoValues.nParticles = 4;
     
     potDelta = (MAX_POT_VALUE - WIPER_VALUE) / (psoValues.nParticles + 1);
     
-    psoValues.particleIndex[0] = 7 + 3;
-    psoValues.particleIndex[1] = 7 + 5;
-    psoValues.particleIndex[2] = 7 + 6;
-    psoValues.particleIndex[3] = 7 + 7;
+    psoValues.particleIndex[0] = 7 + 2;
+    psoValues.particleIndex[1] = 7 + 3;
+    psoValues.particleIndex[2] = 7 + 5;
+//    psoValues.particleIndex[3] = 7 + 8;
     
     for (i = 0; i < psoValues.nParticles; i++)
     {
@@ -252,8 +252,8 @@ void SetPotInitialCondition (void)
   {
     matlabPacketSize = MATLAB_PACKET_SIZE_MULTI_UNIT;
     
-    multiUnitValues.unitIndex[0] = 7 + 6;
-    multiUnitValues.unitIndex[1] = 7 + 2;
+    multiUnitValues.unitIndex[0] = 7 + 3;
+    multiUnitValues.unitIndex[1] = 7 + 1;
     
     potIndexValue[multiUnitValues.unitIndex[0]] = multiUnitValues.initialInputByte;
     potIndexValue[multiUnitValues.unitIndex[1]] = potIndexValue[multiUnitValues.unitIndex[0]] + multiUnitValues.deltaByte;
