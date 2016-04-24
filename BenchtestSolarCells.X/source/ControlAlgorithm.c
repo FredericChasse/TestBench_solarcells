@@ -187,7 +187,7 @@ void SetPotInitialCondition (void)
     
     psoValues.particleIndex[0] = 7 + 2;
     psoValues.particleIndex[1] = 7 + 3;
-    psoValues.particleIndex[2] = 7 + 5;
+    psoValues.particleIndex[2] = 7 + 1;
 //    psoValues.particleIndex[3] = 7 + 8;
     
     for (i = 0; i < psoValues.nParticles; i++)
@@ -253,7 +253,7 @@ void SetPotInitialCondition (void)
     matlabPacketSize = MATLAB_PACKET_SIZE_MULTI_UNIT;
     
     multiUnitValues.unitIndex[0] = 7 + 3;
-    multiUnitValues.unitIndex[1] = 7 + 1;
+    multiUnitValues.unitIndex[1] = 7 + 2;
     
     potIndexValue[multiUnitValues.unitIndex[0]] = multiUnitValues.initialInputByte;
     potIndexValue[multiUnitValues.unitIndex[1]] = potIndexValue[multiUnitValues.unitIndex[0]] + multiUnitValues.deltaByte;
